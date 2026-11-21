@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Creative Studio AI Ultimate</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://js.puter.com/v2/"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -13,11 +14,13 @@ body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
 .glass{background:rgba(20,27,47,.88);border:1px solid #29334c}
 .field{width:100%;background:#0b1020;border:1px solid #29334c;border-radius:12px;padding:12px;color:white;outline:none}
 .field:focus{border-color:#818cf8}
-.btn{border-radius:12px;padding:11px 16px;font-weight:700;transition:.2s}
+.btn{border-radius:12px;padding:10px 16px;font-weight:700;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .primary{background:linear-gradient(110deg,#6366f1,#9333ea)}
 .primary:hover{filter:brightness(1.15)}
+.ghost{background:#10172a;border:1px solid #29334c}
+.ghost:hover{border-color:#818cf8}
 button:disabled{opacity:.55;cursor:not-allowed}
-.style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px}
+.style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600}
 .style.active{border-color:#818cf8;background:#312e81;color:white}
 .spinner{width:42px;height:42px;border:4px solid #333b59;border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -25,50 +28,84 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .card img{width:100%;height:160px;object-fit:cover}
 .hidden{display:none!important}
 #resultImage{max-width:100%;max-height:650px;object-fit:contain}
+.ic{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ic-lg{width:3.5rem;height:3.5rem}
+.chip{border:1px solid #3b4670;background:#141c33;border-radius:999px;padding:4px 12px;font-size:12px}
+.chip:hover{border-color:#818cf8;color:#c7d2fe}
+.drop{border:2px dashed #3b4670;border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
+.drop:hover,.drop.over{border-color:#818cf8;background:#10172a}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
 </style>
 </head>
 
 <body class="min-h-screen">
 
+<!-- مجموعة الأيقونات -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+<symbol id="i-wand" viewBox="0 0 24 24"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M17.8 6.2 19 5M12.2 6.2 11 5"/><path d="m3 21 9-9"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+</svg>
+
 <header class="sticky top-0 z-50 glass">
 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 <div class="flex items-center gap-3">
-<div class="w-11 h-11 rounded-xl primary flex items-center justify-center text-2xl">✨</div>
+<div class="w-11 h-11 rounded-xl primary flex items-center justify-center"><svg class="ic" style="width:1.5rem;height:1.5rem"><use href="#i-sparkle"/></svg></div>
 <div>
 <h1 class="font-black text-lg">Creative Studio AI</h1>
 <p class="text-xs text-slate-400">Ultimate Image Creator</p>
 </div>
 </div>
-<span class="text-xs text-emerald-400">● استوديو الإبداع</span>
+<button id="authBtn" class="btn ghost text-xs" onclick="signIn()">
+<svg class="ic"><use href="#i-user"/></svg><span id="authLabel">تسجيل الدخول إلى Puter</span>
+</button>
 </div>
 </header>
 
 <main class="max-w-7xl mx-auto p-4 py-7">
 
 <div class="mb-7">
-<h2 class="text-3xl font-black mb-2">أطلق العنان لخيالك 🚀</h2>
+<h2 class="text-3xl font-black mb-2">أطلق العنان لخيالك</h2>
 <p class="text-slate-400 text-sm">
-ابحث عن الشخصيات المشهورة واكتشف تفاصيلها وحوّل أفكارك إلى صور.
+ابحث عن الشخصيات، تعرّف على أي صورة، وحوّل أفكارك إلى صور بنماذج متعددة.
 </p>
 </div>
 
 <div class="grid lg:grid-cols-12 gap-5">
 
 <!-- لوحة التحكم -->
-<section class="lg:col-span-5 glass rounded-2xl p-5 space-y-5">
+<section class="lg:col-span-5 glass rounded-2xl p-5 space-y-6">
 
+<!-- البحث عن الشخصيات -->
 <div>
-<h3 class="font-bold text-indigo-300 mb-3">🔎 البحث عن الشخصيات</h3>
+<h3 class="font-bold text-indigo-300 mb-3 flex items-center gap-2"><svg class="ic"><use href="#i-search"/></svg>البحث عن الشخصيات</h3>
 
 <div class="flex gap-2">
 <input id="characterSearch" class="field"
-placeholder="Naruto, Luffy, Goku, ناروتو, 悟空 ...">
-<button id="searchBtn" class="btn primary whitespace-nowrap"
-onclick="searchCharacter()">بحث</button>
+placeholder="اسم، أو وصف: Naruto، ناروتو، ملاكم بقفازات حمراء...">
+<button id="searchBtn" class="btn primary whitespace-nowrap" onclick="searchCharacter()">بحث</button>
 </div>
 
+<button id="smartBtn" class="btn ghost w-full mt-2 text-sm" onclick="smartSearch()">
+<svg class="ic"><use href="#i-wand"/></svg>بحث ذكي (اكتب وصفاً وسيجد المساعد الاسم)
+</button>
+
+<div id="smartChips" class="flex flex-wrap gap-2 mt-3"></div>
+
 <div id="searchLoading" class="hidden text-sm text-indigo-300 mt-3 items-center gap-2">
-<div class="spinner"></div> جاري البحث...
+<div class="spinner" style="width:22px;height:22px;border-width:3px"></div> جاري البحث...
 </div>
 
 <div id="characterResults" class="space-y-2 mt-3 max-h-96 overflow-y-auto pl-1"></div>
@@ -82,10 +119,49 @@ onclick="searchCharacter()">بحث</button>
 <p id="characterSource" class="text-xs text-emerald-400 mt-1"></p>
 <p id="characterDescription" class="text-sm text-slate-400 mt-2 leading-7"></p>
 <a id="wikiLink" target="_blank" rel="noopener"
-class="text-xs text-indigo-300 inline-block mt-3">قراءة المزيد ↗</a>
+class="text-xs text-indigo-300 inline-flex items-center gap-1 mt-3">قراءة المزيد <svg class="ic"><use href="#i-link"/></svg></a>
 <button onclick="useCharacter()" class="btn primary w-full mt-4">
 استخدام الشخصية في الصورة
 </button>
+</div>
+
+<!-- البحث بالصورة -->
+<div>
+<h3 class="font-bold text-indigo-300 mb-3 flex items-center gap-2"><svg class="ic"><use href="#i-eye"/></svg>البحث بالصورة</h3>
+
+<div id="dropZone" class="drop" onclick="$('fileInput').click()">
+<svg class="ic" style="width:2rem;height:2rem;margin:0 auto 6px"><use href="#i-upload"/></svg>
+<p class="text-sm font-bold">اسحب صورة هنا أو اضغط للاختيار</p>
+<p class="text-xs text-slate-500 mt-1">يمكنك أيضاً لصقها بـ Ctrl+V</p>
+</div>
+<input id="fileInput" type="file" accept="image/*" class="hidden">
+
+<div id="uploadBox" class="hidden mt-3">
+<img id="uploadPreview" class="rounded-xl mx-auto max-h-56 object-contain" alt="">
+
+<div class="grid grid-cols-2 gap-2 mt-3">
+<button id="identifyBtn" class="btn primary text-sm" onclick="identifyImage()">
+<svg class="ic"><use href="#i-eye"/></svg>تعرّف بالذكاء الاصطناعي
+</button>
+<button id="traceBtn" class="btn ghost text-sm" onclick="traceAnime()">
+<svg class="ic"><use href="#i-film"/></svg>مصدر مشهد أنمي
+</button>
+</div>
+
+<p class="text-xs text-slate-500 mt-3 mb-2">بحث عكسي عام (ارفع الصورة في الموقع المفتوح):</p>
+<div class="flex flex-wrap gap-2">
+<a class="chip inline-flex items-center gap-1" target="_blank" rel="noopener" href="https://lens.google.com/">Google Lens <svg class="ic"><use href="#i-link"/></svg></a>
+<a class="chip inline-flex items-center gap-1" target="_blank" rel="noopener" href="https://yandex.com/images/">Yandex <svg class="ic"><use href="#i-link"/></svg></a>
+<a class="chip inline-flex items-center gap-1" target="_blank" rel="noopener" href="https://tineye.com/">TinEye <svg class="ic"><use href="#i-link"/></svg></a>
+<a class="chip inline-flex items-center gap-1" target="_blank" rel="noopener" href="https://saucenao.com/">SauceNAO <svg class="ic"><use href="#i-link"/></svg></a>
+</div>
+</div>
+
+<div id="identifyLoading" class="hidden text-sm text-indigo-300 mt-3 items-center gap-2">
+<div class="spinner" style="width:22px;height:22px;border-width:3px"></div><span id="identifyLoadingText">جاري التحليل...</span>
+</div>
+
+<div id="identifyResult" class="mt-3 space-y-3"></div>
 </div>
 
 <!-- الوصف -->
@@ -93,80 +169,81 @@ class="text-xs text-indigo-300 inline-block mt-3">قراءة المزيد ↗</a
 <label class="text-sm font-bold block mb-2">وصف الصورة</label>
 <textarea id="prompt" rows="4" class="field"
 placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."></textarea>
-<p class="text-xs text-slate-500 mt-2">
-اكتب وصفاً مفصلاً أو ابحث عن شخصية مشهورة.
-</p>
+<div class="flex justify-between items-center mt-2">
+<p class="text-xs text-slate-500">اكتب وصفاً مفصلاً أو دع المساعد يحسّنه.</p>
+<button id="enhanceBtn" class="btn ghost text-xs" onclick="enhancePrompt()">
+<svg class="ic"><use href="#i-wand"/></svg>حسّن الوصف
+</button>
+</div>
 </div>
 
 <!-- الأساليب الفنية -->
 <div>
 <label class="text-sm font-bold block mb-3">الأسلوب الفني</label>
 <div class="grid grid-cols-3 gap-2" id="styles">
-
-<!-- الأسلوب الجديد: مطابق لجودة الصورة المرجعية -->
-<button class="style active" data-style="dark">
-🥊 أنمي مظلم
-</button>
-<button class="style" data-style="cinematic photorealistic">
-🎬 واقعي
-</button>
-<button class="style" data-style="anime illustration">
-🎌 أنمي
-</button>
-<button class="style" data-style="high quality 3D render">
-🧊 3D
-</button>
-<button class="style" data-style="cyberpunk neon artwork">
-🌆 سايبربانك
-</button>
-<button class="style" data-style="fantasy digital artwork">
-🪄 خيالي
-</button>
-<button class="style" data-style="classic oil painting">
-🎨 زيتي
-</button>
-<button class="style" data-style="comic book illustration">
-💥 كوميكس
-</button>
-<button class="style" data-style="watercolor painting">
-🖌️ مائي
-</button>
-
+<button class="style active" data-style="dark">أنمي مظلم</button>
+<button class="style" data-style="cinematic photorealistic">واقعي سينمائي</button>
+<button class="style" data-style="anime illustration">أنمي</button>
+<button class="style" data-style="high quality 3D render">3D</button>
+<button class="style" data-style="cyberpunk neon artwork">سايبربانك</button>
+<button class="style" data-style="fantasy digital artwork">خيالي</button>
+<button class="style" data-style="classic oil painting">زيتي</button>
+<button class="style" data-style="comic book illustration">كوميكس</button>
+<button class="style" data-style="watercolor painting">مائي</button>
 </div>
 </div>
 
-<!-- الجودة والأبعاد -->
-<div class="grid grid-cols-2 gap-3">
-
+<!-- المحرك -->
 <div>
-<label class="text-sm block mb-2">دقة الصورة</label>
-<select id="width" class="field">
-<option value="1024">1024px - عالية (أسرع)</option>
-<option value="1280">1280px - مرتفعة</option>
-<option value="1536">1536px - فائقة (أبطأ)</option>
+<label class="text-sm block mb-2 font-bold">محرك التوليد</label>
+<select id="engine" class="field">
+<option value="puter:google/gemini-2.5-flash-image">Nano Banana (Google) - جودة عالية</option>
+<option value="puter:openai/gpt-image-2">GPT Image 2 - دقة في اتباع الوصف</option>
+<option value="puter:x-ai/grok-imagine-image">Grok Imagine</option>
+<option value="puter:black-forest-labs/flux-2-klein-9b-base">FLUX 2</option>
+<option value="puter:google/imagen-4.0">Imagen 4</option>
+<option value="pollinations">Pollinations FLUX - بدون حساب (أبطأ)</option>
 </select>
-</div>
-
-<div>
-<label class="text-sm block mb-2">نسبة الصورة</label>
-<select id="ratio" class="field">
-<option value="1">مربع 1:1</option>
-<option value="1.5">أفقي 3:2</option>
-<option value="0.667">عمودي 2:3</option>
-<option value="1.778">عريض 16:9</option>
-</select>
-</div>
-
-</div>
-
-<p class="text-xs text-slate-500 text-center">
-الخدمة المجانية قد تفرض فاصلاً قصيراً بين الصور، وتتم إعادة المحاولة تلقائياً.
+<p class="text-xs text-slate-500 mt-2">
+نماذج Puter تحتاج حساباً مجانياً على Puter (نافذة تسجيل تظهر مرة واحدة). عند فشل النموذج يتم التحويل تلقائياً إلى Pollinations.
 </p>
+</div>
 
-<!-- زر التوليد -->
-<button id="generateBtn" onclick="generateImage()"
-class="btn primary w-full text-base">
-✨ توليد الصورة الآن
+<!-- الأبعاد والعدد -->
+<div class="grid grid-cols-3 gap-3">
+
+<div>
+<label class="text-sm block mb-2">الدقة</label>
+<select id="width" class="field">
+<option value="1024">1024</option>
+<option value="1280">1280</option>
+<option value="1536">1536</option>
+</select>
+</div>
+
+<div>
+<label class="text-sm block mb-2">النسبة</label>
+<select id="ratio" class="field">
+<option value="1">1:1</option>
+<option value="1.5">3:2</option>
+<option value="0.667">2:3</option>
+<option value="1.778">16:9</option>
+</select>
+</div>
+
+<div>
+<label class="text-sm block mb-2">العدد</label>
+<select id="count" class="field">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="4">4</option>
+</select>
+</div>
+
+</div>
+
+<button id="generateBtn" onclick="generateImage()" class="btn primary w-full text-base">
+<svg class="ic"><use href="#i-sparkle"/></svg>توليد الصورة الآن
 </button>
 
 </section>
@@ -176,81 +253,71 @@ class="btn primary w-full text-base">
 
 <div class="glass rounded-2xl p-5 min-h-[450px] flex flex-col items-center justify-center text-center">
 
-<!-- البداية -->
 <div id="emptyState">
-<div class="text-7xl mb-5">🎨</div>
+<svg class="ic ic-lg text-indigo-400 mx-auto mb-5"><use href="#i-image"/></svg>
 <h3 class="font-bold text-xl">مختبر الإبداع</h3>
-<p class="text-sm text-slate-500 mt-2">
-ستظهر صورتك هنا بعد انتهاء التوليد.
-</p>
+<p class="text-sm text-slate-500 mt-2">ستظهر صورتك هنا بعد انتهاء التوليد.</p>
 </div>
 
-<!-- التحميل -->
 <div id="loadingState" class="hidden flex-col items-center gap-4">
 <div class="spinner" style="width:65px;height:65px"></div>
-<h3 class="font-bold text-indigo-300">
-جاري إنشاء تحفتك الفنية...
-</h3>
-<p id="loadingMessage" class="text-xs text-slate-500">
-يرجى الانتظار حتى اكتمال الصورة.
-</p>
+<h3 class="font-bold text-indigo-300">جاري إنشاء تحفتك الفنية...</h3>
+<p id="loadingMessage" class="text-xs text-slate-500">يرجى الانتظار حتى اكتمال الصورة.</p>
 </div>
 
-<!-- الأخطاء -->
 <div id="errorState" class="hidden text-red-400 p-5">
-<div class="text-4xl mb-3">⚠️</div>
+<svg class="ic ic-lg mx-auto mb-3"><use href="#i-alert"/></svg>
 <p id="errorMessage"></p>
-<button onclick="generateImage()" class="btn primary mt-4">
-إعادة المحاولة
-</button>
+<button onclick="generateImage()" class="btn primary mt-4">إعادة المحاولة</button>
 </div>
 
-<!-- الصورة -->
 <div id="resultState" class="hidden w-full">
-
-<img id="resultImage" class="rounded-xl mx-auto"
-alt="الصورة المولدة">
-
+<img id="resultImage" class="rounded-xl mx-auto" alt="الصورة المولدة">
 <div class="flex flex-wrap justify-center gap-3 mt-5">
-<button onclick="downloadImage()" class="btn bg-emerald-600">
-⬇️ تحميل الصورة
-</button>
-
-<button onclick="generateImage()" class="btn bg-indigo-600">
-🔄 توليد صورة أخرى
-</button>
+<button onclick="downloadImage()" class="btn bg-emerald-600"><svg class="ic"><use href="#i-download"/></svg>تحميل الصورة</button>
+<button onclick="generateImage()" class="btn bg-indigo-600"><svg class="ic"><use href="#i-refresh"/></svg>توليد صورة أخرى</button>
 </div>
-
 </div>
 </div>
 
 <!-- المعرض -->
 <div class="glass rounded-2xl p-5">
-
 <div class="flex justify-between items-center mb-4">
-<h3 class="font-bold">🖼️ معرض إبداعاتك</h3>
-<button onclick="clearGallery()" class="text-xs text-red-400">
-مسح المعرض
-</button>
+<h3 class="font-bold flex items-center gap-2"><svg class="ic"><use href="#i-image"/></svg>معرض إبداعاتك</h3>
+<button onclick="clearGallery()" class="text-xs text-red-400 inline-flex items-center gap-1"><svg class="ic"><use href="#i-trash"/></svg>مسح المعرض</button>
 </div>
-
 <div id="gallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-<p class="text-xs text-slate-500 col-span-full text-center py-5">
-لا توجد صور بعد.
-</p>
+<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>
+</div>
 </div>
 
+<!-- المساعد الذكي -->
+<div class="glass rounded-2xl p-5">
+<h3 class="font-bold text-indigo-300 mb-3 flex items-center gap-2"><svg class="ic"><use href="#i-chat"/></svg>المساعد الذكي</h3>
+
+<div id="chatLog" class="space-y-3 max-h-80 overflow-y-auto mb-3 text-sm">
+<p class="text-xs text-slate-500">اسأل عن أي موضوع، أو اطلب مساعدة في كتابة وصف الصورة.</p>
+</div>
+
+<div class="flex gap-2">
+<input id="chatInput" class="field" placeholder="اكتب سؤالك هنا...">
+<button id="chatBtn" class="btn primary whitespace-nowrap" onclick="sendChat()"><svg class="ic"><use href="#i-send"/></svg>إرسال</button>
+</div>
+
+<div class="flex justify-between mt-2">
+<button onclick="useLastAnswer()" class="text-xs text-indigo-300">استخدام آخر رد كوصف للصورة</button>
+<button onclick="clearChat()" class="text-xs text-red-400">مسح المحادثة</button>
+</div>
 </div>
 
 <!-- نصائح -->
 <div class="glass rounded-2xl p-4 text-xs text-slate-400">
-<h3 class="text-white font-bold mb-2">💡 نصائح لتحسين جودة الصور</h3>
+<h3 class="text-white font-bold mb-2">نصائح لتحسين جودة الصور</h3>
 <ul class="list-disc pr-5 space-y-1">
-<li>اكتب وصفاً دقيقاً باللغة الإنجليزية عند الإمكان.</li>
-<li>حدد زاوية التصوير (low angle) والإضاءة (rim light) والخلفية (red smoke).</li>
-<li>حدد ملامح الوجه والملابس والألوان.</li>
-<li>الدقة الأعلى = وقت توليد أطول.</li>
-<li>اختر الأسلوب الفني المناسب للصورة.</li>
+<li>استخدم زر "حسّن الوصف" ليحوّل فكرتك إلى وصف احترافي مفصل.</li>
+<li>حدد زاوية التصوير والإضاءة والخلفية والألوان.</li>
+<li>جرّب أكثر من محرك، فلكل نموذج نقاط قوة مختلفة.</li>
+<li>الدقة الأعلى تنطبق على محرك Pollinations فقط وتزيد وقت التوليد.</li>
 </ul>
 </div>
 
@@ -259,27 +326,30 @@ alt="الصورة المولدة">
 </main>
 
 <footer class="text-center text-xs text-slate-600 py-7">
-Creative Studio AI Ultimate © 2026
-<br>Character Search: AniList · MyAnimeList · Wikipedia
-<br>Image Generation: Pollinations
+Creative Studio AI Ultimate &copy; 2026
+<br>Search: AniList · MyAnimeList · Wikipedia · trace.moe
+<br>AI &amp; Images: Puter.js · Pollinations
 </footer>
 
 <script>
 
 // ======================================
-// المتغيرات
+// المتغيرات العامة
 // ======================================
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 let selectedStyle = "dark";
 let selectedCharacter = null;
-let currentImage = null;      // رابط blob محلي
+let currentImage = null;
 let gallery = [];
 let isGenerating = false;
 let requestNumber = 0;
 
-const $ = id => document.getElementById(id);
+let uploadedFile = null;
+let uploadedDataUrl = null;
 
-// أوصاف الأساليب. الأسلوب "dark" يطابق الصورة المرجعية
 const STYLE_PROMPTS = {
   dark:
     "dark anime illustration, seinen manga style, low angle shot, " +
@@ -296,325 +366,675 @@ const QUALITY_SUFFIX =
   "masterpiece, ultra detailed, high quality, sharp focus, " +
   "professional artwork, beautiful composition";
 
+const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portrait 2:3", "1.778": "wide cinematic 16:9" };
+
+
+// ======================================
+// Puter: الحساب والمساعد
+// ======================================
+
+function puterReady() {
+  return typeof puter !== "undefined" && puter.ai;
+}
+
+async function refreshAuth() {
+  try {
+    if (puterReady() && puter.auth.isSignedIn()) {
+      const user = await puter.auth.getUser();
+      $("authLabel").textContent = user?.username || "متصل";
+    } else {
+      $("authLabel").textContent = "تسجيل الدخول إلى Puter";
+    }
+  } catch (e) {}
+}
+
+async function signIn() {
+  if (!puterReady()) {
+    alert("تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات لهذه الصفحة.");
+    return;
+  }
+  try {
+    await puter.auth.signIn();
+    refreshAuth();
+  } catch (e) {}
+}
+
+window.addEventListener("load", () => setTimeout(refreshAuth, 800));
+
+let chatModel = null;
+
+// اختيار أحدث نموذج Claude متاح في Puter، وإلا النموذج الافتراضي
+async function pickChatModel() {
+
+  if (chatModel !== null) return chatModel;
+
+  try {
+
+    const list = await puter.ai.listModels();
+
+    const ids = (list || [])
+      .map(m => typeof m === "string" ? m : (m.id || m.name || ""))
+      .filter(Boolean);
+
+    const claude = ids.filter(i => /claude/i.test(i) && !/haiku/i.test(i));
+    const sonnet = claude.filter(i => /sonnet/i.test(i)).sort().reverse();
+
+    chatModel = sonnet[0] || claude.sort().reverse()[0] || "";
+
+  } catch (e) {
+    chatModel = "";
+  }
+
+  return chatModel;
+
+}
+
+function extractText(res) {
+
+  if (typeof res === "string") return res;
+
+  const c = res?.message?.content;
+
+  if (typeof c === "string") return c;
+
+  if (Array.isArray(c)) return c.map(x => x.text || "").join("");
+
+  return res ? String(res) : "";
+
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error("TIMEOUT")), ms))
+  ]);
+}
+
+// طلب نصي أو بصري إلى المساعد
+async function aiAsk(input, image) {
+
+  if (!puterReady()) throw new Error("PUTER_MISSING");
+
+  const model = await pickChatModel();
+  const opts = model ? { model } : {};
+
+  const res = image
+    ? await withTimeout(puter.ai.chat(input, image, opts), 120000)
+    : await withTimeout(puter.ai.chat(input, opts), 120000);
+
+  return extractText(res).trim();
+
+}
+
+function aiJSON(text) {
+
+  const m = text.match(/\{[\s\S]*\}/);
+
+  if (!m) throw new Error("NO_JSON");
+
+  return JSON.parse(m[0]);
+
+}
+
+function aiErrorMessage(e) {
+
+  if (e && e.message === "PUTER_MISSING")
+    return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+
+  if (e && e.message === "TIMEOUT")
+    return "انتهت مهلة الانتظار. حاول مرة أخرى.";
+
+  return "تعذر الاتصال بالمساعد. سجّل الدخول إلى Puter من الأعلى ثم حاول مجدداً.";
+
+}
+
 
 // ======================================
 // اختيار الأسلوب
 // ======================================
 
 document.querySelectorAll(".style").forEach(button => {
-
-button.addEventListener("click", () => {
-
-document.querySelectorAll(".style").forEach(b =>
-b.classList.remove("active")
-);
-
-button.classList.add("active");
-selectedStyle = button.dataset.style;
-
-});
-
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".style").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    selectedStyle = button.dataset.style;
+  });
 });
 
 
 // ======================================
-// البحث الشامل عن الشخصيات (عدة مصادر معاً)
+// البحث الشامل عن الشخصيات
 // ======================================
 
-// المصادر: AniList + MyAnimeList + ويكيبيديا (إنجليزي، عربي، ياباني، فرنسي، إسباني)
 const WIKI_LANGS = ["en", "ar", "ja", "fr", "es"];
 
 function cleanText(t) {
-return (t || "")
-.replace(/~!.*?!~/gs, "")
-.replace(/<br\s*\/?>/gi, " ")
-.replace(/<[^>]+>/g, "")
-.replace(/__|\*\*|~~/g, "")
-.replace(/\s+/g, " ")
-.trim();
+  return (t || "")
+    .replace(/~!.*?!~/gs, "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/__|\*\*|~~/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function searchAniList(q) {
 
-const query = `query($s:String){Page(perPage:10){characters(search:$s){
+  const query = `query($s:String){Page(perPage:10){characters(search:$s){
 name{full native} image{medium} description(asHtml:false) siteUrl
 media(perPage:1){nodes{title{romaji english}}}}}}`;
 
-const r = await fetch("https://graphql.anilist.co", {
-method: "POST",
-headers: { "Content-Type": "application/json", "Accept": "application/json" },
-body: JSON.stringify({ query, variables: { s: q } })
-});
+  const r = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ query, variables: { s: q } })
+  });
 
-if (!r.ok) throw new Error("AniList");
+  if (!r.ok) throw new Error("AniList");
 
-const d = await r.json();
+  const d = await r.json();
 
-return (d.data?.Page?.characters || []).map(c => {
-const m = c.media?.nodes?.[0]?.title;
-return {
-source: "AniList",
-title: c.name.full,
-subtitle: m?.english || m?.romaji || "",
-image: c.image?.medium || "",
-description: cleanText(c.description),
-url: c.siteUrl
-};
-});
+  return (d.data?.Page?.characters || []).map(c => {
+    const m = c.media?.nodes?.[0]?.title;
+    return {
+      source: "AniList",
+      title: c.name.full,
+      subtitle: m?.english || m?.romaji || "",
+      image: c.image?.medium || "",
+      description: cleanText(c.description),
+      url: c.siteUrl
+    };
+  });
 
 }
 
 async function searchJikan(q) {
 
-const r = await fetch(
-`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=10&order_by=favorites&sort=desc`
-);
+  const r = await fetch(
+    `https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=10&order_by=favorites&sort=desc`
+  );
 
-if (!r.ok) throw new Error("Jikan");
+  if (!r.ok) throw new Error("Jikan");
 
-const d = await r.json();
+  const d = await r.json();
 
-return (d.data || []).map(c => ({
-source: "MyAnimeList",
-title: c.name,
-subtitle: c.name_kanji || "",
-image: c.images?.jpg?.image_url || "",
-description: cleanText(c.about),
-url: c.url
-}));
+  return (d.data || []).map(c => ({
+    source: "MyAnimeList",
+    title: c.name,
+    subtitle: c.name_kanji || "",
+    image: c.images?.jpg?.image_url || "",
+    description: cleanText(c.about),
+    url: c.url
+  }));
 
 }
 
 async function searchWiki(lang, q) {
 
-const url =
-`https://${lang}.wikipedia.org/w/api.php?action=query&generator=search` +
-`&gsrsearch=${encodeURIComponent(q)}&gsrlimit=6` +
-`&prop=extracts|pageimages&exintro=1&explaintext=1&exlimit=max` +
-`&piprop=thumbnail&pithumbsize=120&format=json&origin=*`;
+  const url =
+    `https://${lang}.wikipedia.org/w/api.php?action=query&generator=search` +
+    `&gsrsearch=${encodeURIComponent(q)}&gsrlimit=6` +
+    `&prop=extracts|pageimages&exintro=1&explaintext=1&exlimit=max` +
+    `&piprop=thumbnail&pithumbsize=120&format=json&origin=*`;
 
-const r = await fetch(url);
+  const r = await fetch(url);
 
-if (!r.ok) throw new Error("Wikipedia " + lang);
+  if (!r.ok) throw new Error("Wikipedia " + lang);
 
-const d = await r.json();
+  const d = await r.json();
 
-return Object.values(d.query?.pages || {})
-.sort((a, b) => a.index - b.index)
-.map(pg => ({
-source: "Wikipedia " + lang.toUpperCase(),
-title: pg.title,
-subtitle: "",
-image: pg.thumbnail?.source || "",
-description: cleanText(pg.extract),
-url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title.replace(/ /g, "_"))}`
-}));
-
-}
-
-async function searchCharacter() {
-
-const query = $("characterSearch").value.trim();
-
-if (!query) {
-alert("اكتب اسم الشخصية أولاً.");
-return;
-}
-
-$("searchLoading").classList.remove("hidden");
-$("searchLoading").classList.add("flex");
-$("characterResults").innerHTML = "";
-$("characterInfo").classList.add("hidden");
-$("searchBtn").disabled = true;
-
-// كل المصادر بالتوازي، وفشل مصدر لا يوقف الباقي
-const tasks = [
-searchAniList(query),
-searchJikan(query),
-...WIKI_LANGS.map(l => searchWiki(l, query))
-];
-
-const settled = await Promise.allSettled(tasks);
-
-const results = settled
-.filter(x => x.status === "fulfilled")
-.flatMap(x => x.value);
-
-$("searchLoading").classList.add("hidden");
-$("searchLoading").classList.remove("flex");
-$("searchBtn").disabled = false;
-
-if (!results.length) {
-
-$("characterResults").textContent =
-settled.every(x => x.status === "rejected")
-? "تعذر الاتصال بمصادر البحث. تحقق من الإنترنت."
-: "لم نعثر على نتائج. جرب اسماً آخر.";
-
-return;
-}
-
-results.forEach(item => {
-
-const btn = document.createElement("button");
-btn.className =
-"card w-full p-2 text-right text-sm hover:border-indigo-500 flex items-center gap-3";
-
-if (item.image) {
-const img = document.createElement("img");
-img.src = item.image;
-img.alt = "";
-img.loading = "lazy";
-img.style.cssText = "width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0";
-btn.appendChild(img);
-}
-
-const box = document.createElement("div");
-box.className = "min-w-0 flex-1";
-
-const t = document.createElement("div");
-t.className = "font-bold truncate";
-t.textContent = item.title;
-
-const sub = document.createElement("div");
-sub.className = "text-xs text-slate-400 truncate";
-sub.textContent = item.subtitle ? item.subtitle + " • " + item.source : item.source;
-
-box.append(t, sub);
-btn.appendChild(box);
-
-btn.onclick = () => showCharacter(item);
-
-$("characterResults").appendChild(btn);
-
-});
+  return Object.values(d.query?.pages || {})
+    .sort((a, b) => a.index - b.index)
+    .map(pg => ({
+      source: "Wikipedia " + lang.toUpperCase(),
+      title: pg.title,
+      subtitle: "",
+      image: pg.thumbnail?.source || "",
+      description: cleanText(pg.extract),
+      url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title.replace(/ /g, "_"))}`
+    }));
 
 }
 
+async function searchCharacter(overrideQuery) {
 
-// ======================================
-// عرض معلومات الشخصية
-// ======================================
+  const query = (typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value).trim();
+
+  if (!query) {
+    alert("اكتب اسم الشخصية أولاً.");
+    return;
+  }
+
+  $("characterSearch").value = query;
+  $("searchLoading").classList.remove("hidden");
+  $("searchLoading").classList.add("flex");
+  $("characterResults").innerHTML = "";
+  $("characterInfo").classList.add("hidden");
+  $("searchBtn").disabled = true;
+
+  const settled = await Promise.allSettled([
+    searchAniList(query),
+    searchJikan(query),
+    ...WIKI_LANGS.map(l => searchWiki(l, query))
+  ]);
+
+  const results = settled.filter(x => x.status === "fulfilled").flatMap(x => x.value);
+
+  $("searchLoading").classList.add("hidden");
+  $("searchLoading").classList.remove("flex");
+  $("searchBtn").disabled = false;
+
+  if (!results.length) {
+    $("characterResults").textContent =
+      settled.every(x => x.status === "rejected")
+        ? "تعذر الاتصال بمصادر البحث. تحقق من الإنترنت."
+        : "لم نعثر على نتائج. جرّب البحث الذكي أو اسماً آخر.";
+    return;
+  }
+
+  results.forEach(item => {
+
+    const btn = document.createElement("button");
+    btn.className = "card w-full p-2 text-right text-sm hover:border-indigo-500 flex items-center gap-3";
+
+    if (item.image) {
+      const img = document.createElement("img");
+      img.src = item.image;
+      img.alt = "";
+      img.loading = "lazy";
+      img.style.cssText = "width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0";
+      btn.appendChild(img);
+    }
+
+    const box = document.createElement("div");
+    box.className = "min-w-0 flex-1";
+
+    const t = document.createElement("div");
+    t.className = "font-bold truncate";
+    t.textContent = item.title;
+
+    const sub = document.createElement("div");
+    sub.className = "text-xs text-slate-400 truncate";
+    sub.textContent = item.subtitle ? item.subtitle + " • " + item.source : item.source;
+
+    box.append(t, sub);
+    btn.appendChild(box);
+    btn.onclick = () => showCharacter(item);
+
+    $("characterResults").appendChild(btn);
+
+  });
+
+}
 
 function showCharacter(item) {
 
-selectedCharacter = {
-name: item.title,
-series: item.subtitle,
-description: item.description || "",
-url: item.url
-};
+  selectedCharacter = {
+    name: item.title,
+    series: item.subtitle,
+    description: item.description || "",
+    url: item.url
+  };
 
-$("characterInfo").classList.remove("hidden");
-$("characterName").textContent = item.title;
-$("characterSource").textContent = item.source;
+  $("characterInfo").classList.remove("hidden");
+  $("characterName").textContent = item.title;
+  $("characterSource").textContent = item.source;
 
-$("characterDescription").textContent =
-selectedCharacter.description.slice(0, 1400) ||
-"لم يتوفر وصف لهذه الشخصية. يمكنك استخدام اسمها مباشرة.";
+  $("characterDescription").textContent =
+    selectedCharacter.description.slice(0, 1400) ||
+    "لم يتوفر وصف لهذه الشخصية. يمكنك استخدام اسمها مباشرة.";
 
-$("wikiLink").href = item.url;
+  $("wikiLink").href = item.url;
 
-if (item.image) {
-$("characterImage").src = item.image;
-$("characterImage").classList.remove("hidden");
-} else {
-$("characterImage").classList.add("hidden");
+  if (item.image) {
+    $("characterImage").src = item.image;
+    $("characterImage").classList.remove("hidden");
+  } else {
+    $("characterImage").classList.add("hidden");
+  }
+
 }
-
-}
-
-
-// ======================================
-// استخدام الشخصية
-// ======================================
 
 function useCharacter() {
 
-if (!selectedCharacter) return;
+  if (!selectedCharacter) return;
 
-// وصف قصير فقط: الأوصاف الطويلة تبطئ التوليد وتشوّش النموذج
-const details = selectedCharacter.description.slice(0, 400);
+  const details = selectedCharacter.description.slice(0, 400);
 
-$("prompt").value =
-`Detailed professional artwork of ${selectedCharacter.name}` +
-`${selectedCharacter.series ? " from " + selectedCharacter.series : ""}. ` +
-`${details} ` +
-`Keep the recognizable original appearance, hairstyle, clothing and colors. ` +
-`Detailed face, accurate anatomy.`;
+  $("prompt").value =
+    `Detailed professional artwork of ${selectedCharacter.name}` +
+    `${selectedCharacter.series ? " from " + selectedCharacter.series : ""}. ` +
+    `${details} ` +
+    `Keep the recognizable original appearance, hairstyle, clothing and colors. ` +
+    `Detailed face, accurate anatomy.`;
 
-$("prompt").focus();
+  $("prompt").focus();
 
 }
 
 
 // ======================================
-// أدوات التوليد
+// البحث الذكي (المساعد يستنتج الاسم من الوصف)
 // ======================================
 
-function buildImageUrl(fullPrompt, width, height, seed) {
+function showChips(names) {
 
-const enc = encodeURIComponent(fullPrompt);
+  $("smartChips").innerHTML = "";
 
-return `https://image.pollinations.ai/prompt/${enc}` +
-`?width=${width}&height=${height}&seed=${seed}` +
-`&model=flux&nologo=true` +
-`&negative_prompt=${encodeURIComponent(NEGATIVE_PROMPT)}`;
-
-}
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-// طلب واحد فقط للصورة، ثم تحويلها إلى رابط محلي (blob)
-// هذا يمنع تكرار الطلب من المعرض والتحميل، وكل طلب مكرر يستهلك دور الانتظار
-async function fetchImageBlob(url) {
-
-const controller = new AbortController();
-const timer = setTimeout(() => controller.abort(), 180000);
-
-try {
-
-const response = await fetch(url, { signal: controller.signal });
-
-if (response.status === 429 || response.status >= 500) {
-const err = new Error("busy");
-err.retryable = true;
-throw err;
-}
-
-if (!response.ok) throw new Error("HTTP " + response.status);
-
-const blob = await response.blob();
-
-if (!blob.type.startsWith("image/")) {
-const err = new Error("not image");
-err.retryable = true;
-throw err;
-}
-
-return URL.createObjectURL(blob);
-
-} finally {
-clearTimeout(timer);
-}
+  names.forEach(n => {
+    const c = document.createElement("button");
+    c.className = "chip";
+    c.textContent = n;
+    c.onclick = () => searchCharacter(n);
+    $("smartChips").appendChild(c);
+  });
 
 }
 
-// خطة بديلة إذا منع المتصفح fetch (CORS): تحميل عبر وسم الصورة
-function loadViaImgTag(url) {
+async function smartSearch() {
 
-return new Promise((resolve, reject) => {
+  const text = $("characterSearch").value.trim();
 
-const img = new Image();
-const timer = setTimeout(() => reject(new Error("timeout")), 180000);
+  if (!text) {
+    alert("اكتب وصفاً أو اسماً تقريبياً أولاً.");
+    return;
+  }
 
-img.onload = () => { clearTimeout(timer); resolve(url); };
-img.onerror = () => { clearTimeout(timer); reject(new Error("load failed")); };
+  $("smartBtn").disabled = true;
+  $("smartChips").innerHTML = '<span class="text-xs text-indigo-300">المساعد يحلل طلبك...</span>';
 
-img.referrerPolicy = "no-referrer";
-img.src = url;
+  try {
 
+    const answer = await aiAsk(
+      "The user describes a fictional character, anime, game, or public work they want to find (any language). " +
+      "Reply ONLY with JSON: {\"names\":[\"up to 4 most likely English names, best first\"]}. " +
+      "Do not identify private individuals. User text: " + text
+    );
+
+    const names = (aiJSON(answer).names || []).slice(0, 4);
+
+    if (!names.length) throw new Error("NO_NAMES");
+
+    showChips(names);
+    searchCharacter(names[0]);
+
+  } catch (e) {
+
+    $("smartChips").innerHTML = "";
+    $("characterResults").textContent = aiErrorMessage(e);
+
+  } finally {
+
+    $("smartBtn").disabled = false;
+
+  }
+
+}
+
+
+// ======================================
+// البحث بالصورة
+// ======================================
+
+// تصغير الصورة قبل إرسالها للتحليل لتسريع الطلب
+function fileToDataUrl(file, maxSide = 1024) {
+
+  return new Promise((resolve, reject) => {
+
+    const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error("read"));
+
+    reader.onload = () => {
+
+      const img = new Image();
+
+      img.onerror = () => reject(new Error("decode"));
+
+      img.onload = () => {
+
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.88));
+
+      };
+
+      img.src = reader.result;
+
+    };
+
+    reader.readAsDataURL(file);
+
+  });
+
+}
+
+async function setUploaded(file) {
+
+  if (!file || !file.type.startsWith("image/")) {
+    alert("اختر ملف صورة.");
+    return;
+  }
+
+  uploadedFile = file;
+
+  try {
+    uploadedDataUrl = await fileToDataUrl(file);
+  } catch (e) {
+    alert("تعذر قراءة الصورة.");
+    return;
+  }
+
+  $("uploadPreview").src = uploadedDataUrl;
+  $("uploadBox").classList.remove("hidden");
+  $("identifyResult").innerHTML = "";
+
+}
+
+$("fileInput").addEventListener("change", e => setUploaded(e.target.files[0]));
+
+const drop = $("dropZone");
+
+["dragenter", "dragover"].forEach(ev =>
+  drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })
+);
+
+["dragleave", "drop"].forEach(ev =>
+  drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); })
+);
+
+drop.addEventListener("drop", e => setUploaded(e.dataTransfer.files[0]));
+
+document.addEventListener("paste", e => {
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+  if (item) setUploaded(item.getAsFile());
 });
+
+function setIdentifyLoading(on, text) {
+  $("identifyLoading").classList.toggle("hidden", !on);
+  $("identifyLoading").classList.toggle("flex", on);
+  if (text) $("identifyLoadingText").textContent = text;
+  $("identifyBtn").disabled = on;
+  $("traceBtn").disabled = on;
+}
+
+function addInfoBox(html) {
+  const box = document.createElement("div");
+  box.className = "card p-3 text-sm";
+  box.innerHTML = html;
+  $("identifyResult").appendChild(box);
+  return box;
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function identifyImage() {
+
+  if (!uploadedDataUrl) return;
+
+  $("identifyResult").innerHTML = "";
+  setIdentifyLoading(true, "المساعد يحلل الصورة...");
+
+  try {
+
+    const answer = await aiAsk(
+      "Look at this image and reply ONLY with JSON: " +
+      "{\"description\":\"2-3 sentence description in Arabic\"," +
+      "\"characters\":[\"names of fictional, anime or game characters you recognize, max 4, English\"]," +
+      "\"series\":\"title of the work or empty\"," +
+      "\"queries\":[\"up to 3 short English search queries to find the source\"]," +
+      "\"image_prompt\":\"detailed English prompt to recreate a similar image\"}. " +
+      "Never identify real people from their faces: for real people leave characters empty and only describe.",
+      uploadedDataUrl
+    );
+
+    const data = aiJSON(answer);
+    const names = [...new Set([...(data.characters || []), ...(data.queries || [])])].slice(0, 6);
+
+    const box = addInfoBox(
+      `<p class="font-bold text-emerald-300 mb-2">نتيجة التحليل</p>` +
+      `<p class="text-slate-300 leading-7">${escapeHtml(data.description)}</p>` +
+      (data.series ? `<p class="text-xs text-slate-400 mt-2">العمل المحتمل: ${escapeHtml(data.series)}</p>` : "")
+    );
+
+    if (names.length) {
+      const wrap = document.createElement("div");
+      wrap.className = "flex flex-wrap gap-2 mt-3";
+      names.forEach(n => {
+        const c = document.createElement("button");
+        c.className = "chip";
+        c.textContent = n;
+        c.onclick = () => searchCharacter(n);
+        wrap.appendChild(c);
+      });
+      box.appendChild(wrap);
+    }
+
+    if (data.image_prompt) {
+      const b = document.createElement("button");
+      b.className = "btn ghost text-xs mt-3 w-full";
+      b.textContent = "استخدام وصف مشابه لتوليد صورة";
+      b.onclick = () => { $("prompt").value = data.image_prompt; $("prompt").focus(); };
+      box.appendChild(b);
+    }
+
+  } catch (e) {
+
+    addInfoBox(`<p class="text-red-400">${escapeHtml(aiErrorMessage(e))}</p>`);
+
+  } finally {
+
+    setIdentifyLoading(false);
+
+  }
+
+}
+
+async function traceAnime() {
+
+  if (!uploadedFile) return;
+
+  $("identifyResult").innerHTML = "";
+  setIdentifyLoading(true, "جاري البحث عن مصدر المشهد...");
+
+  try {
+
+    const fd = new FormData();
+    fd.append("image", uploadedFile);
+
+    const r = await withTimeout(fetch("https://api.trace.moe/search?anilistInfo", { method: "POST", body: fd }), 60000);
+
+    if (!r.ok) throw new Error("HTTP " + r.status);
+
+    const d = await r.json();
+    const list = (d.result || []).slice(0, 3);
+
+    if (!list.length) {
+      addInfoBox('<p class="text-slate-400">لم يتم العثور على مشهد مطابق. هذه الخدمة تبحث في لقطات الأنمي فقط.</p>');
+      return;
+    }
+
+    list.forEach(item => {
+
+      const t = item.anilist?.title || {};
+      const title = t.english || t.romaji || t.native || "غير معروف";
+      const pct = Math.round((item.similarity || 0) * 100);
+      const mins = Math.floor((item.from || 0) / 60);
+      const secs = String(Math.floor((item.from || 0) % 60)).padStart(2, "0");
+
+      const box = addInfoBox(
+        `<div class="flex gap-3 items-center">` +
+        (item.image ? `<img src="${escapeHtml(item.image)}" alt="" style="width:96px;height:60px;object-fit:cover;border-radius:8px">` : "") +
+        `<div class="min-w-0"><p class="font-bold truncate">${escapeHtml(title)}</p>` +
+        `<p class="text-xs text-slate-400">الحلقة ${escapeHtml(item.episode ?? "؟")} • الدقيقة ${mins}:${secs}</p>` +
+        `<p class="text-xs ${pct >= 87 ? "text-emerald-400" : "text-amber-400"}">تطابق ${pct}%${pct < 87 ? " (ثقة منخفضة)" : ""}</p></div></div>`
+      );
+
+      const b = document.createElement("button");
+      b.className = "chip mt-2";
+      b.textContent = "ابحث عن شخصيات هذا العمل";
+      b.onclick = () => searchCharacter(title);
+      box.appendChild(b);
+
+    });
+
+  } catch (e) {
+
+    addInfoBox('<p class="text-red-400">تعذر الاتصال بخدمة trace.moe أو تم تجاوز الحد المسموح. حاول لاحقاً.</p>');
+
+  } finally {
+
+    setIdentifyLoading(false);
+
+  }
+
+}
+
+
+// ======================================
+// تحسين الوصف بالمساعد
+// ======================================
+
+async function enhancePrompt() {
+
+  const text = $("prompt").value.trim();
+
+  if (!text) {
+    alert("اكتب فكرة أولاً ثم اضغط تحسين.");
+    return;
+  }
+
+  $("enhanceBtn").disabled = true;
+
+  try {
+
+    const style = STYLE_PROMPTS[selectedStyle] || selectedStyle;
+
+    const answer = await aiAsk(
+      "Rewrite the idea below as one detailed English prompt for an AI image generator. " +
+      "Describe subject, pose, clothing, camera angle, lighting, colors, background and mood. " +
+      "Preferred style: " + style + ". Keep it under 120 words. Reply with the prompt only. Idea: " + text
+    );
+
+    if (answer) $("prompt").value = answer.replace(/^["'\s]+|["'\s]+$/g, "");
+
+  } catch (e) {
+
+    alert(aiErrorMessage(e));
+
+  } finally {
+
+    $("enhanceBtn").disabled = false;
+
+  }
 
 }
 
@@ -623,236 +1043,428 @@ img.src = url;
 // توليد الصور
 // ======================================
 
+function buildPollinationsUrl(fullPrompt, width, height, seed) {
+
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}` +
+    `?width=${width}&height=${height}&seed=${seed}` +
+    `&model=flux&nologo=true` +
+    `&negative_prompt=${encodeURIComponent(NEGATIVE_PROMPT)}`;
+
+}
+
+async function fetchImageBlob(url) {
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 180000);
+
+  try {
+
+    const response = await fetch(url, { signal: controller.signal });
+
+    if (response.status === 429 || response.status >= 500) {
+      const err = new Error("busy");
+      err.retryable = true;
+      throw err;
+    }
+
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
+    const blob = await response.blob();
+
+    if (!blob.type.startsWith("image/")) {
+      const err = new Error("not image");
+      err.retryable = true;
+      throw err;
+    }
+
+    return URL.createObjectURL(blob);
+
+  } finally {
+    clearTimeout(timer);
+  }
+
+}
+
+function loadViaImgTag(url) {
+
+  return new Promise((resolve, reject) => {
+
+    const img = new Image();
+    const timer = setTimeout(() => reject(new Error("timeout")), 180000);
+
+    img.onload = () => { clearTimeout(timer); resolve(url); };
+    img.onerror = () => { clearTimeout(timer); reject(new Error("load failed")); };
+
+    img.referrerPolicy = "no-referrer";
+    img.src = url;
+
+  });
+
+}
+
+async function generateViaPollinations(fullPrompt, width, height, thisRequest) {
+
+  const seed = Math.floor(Math.random() * 999999999);
+  const url = buildPollinationsUrl(fullPrompt, width, height, seed);
+
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+
+    if (thisRequest !== requestNumber) throw new Error("CANCELLED");
+
+    try {
+
+      if (attempt > 1) $("loadingMessage").textContent = `الخدمة مشغولة، إعادة المحاولة ${attempt}/3...`;
+
+      return await fetchImageBlob(url);
+
+    } catch (error) {
+
+      lastError = error;
+
+      if (error instanceof TypeError) {
+        return await loadViaImgTag(url);
+      }
+
+      if (error.retryable && attempt < 3) {
+        for (let s = 16; s > 0; s--) {
+          $("loadingMessage").textContent = `الخدمة المجانية مشغولة. إعادة المحاولة بعد ${s} ثانية...`;
+          await sleep(1000);
+        }
+        continue;
+      }
+
+      break;
+
+    }
+
+  }
+
+  throw lastError || new Error("failed");
+
+}
+
+async function generateViaPuter(model, fullPrompt) {
+
+  if (!puterReady()) throw new Error("PUTER_MISSING");
+
+  const aspect = ASPECT_TEXT[$("ratio").value] || "square 1:1";
+
+  const el = await withTimeout(
+    puter.ai.txt2img(`${fullPrompt}, ${aspect} composition`, { model }),
+    180000
+  );
+
+  const src = el?.src;
+
+  if (!src) throw new Error("EMPTY");
+
+  return src;
+
+}
+
 async function generateImage() {
 
-if (isGenerating) return;
+  if (isGenerating) return;
 
-const prompt = $("prompt").value.trim();
+  const prompt = $("prompt").value.trim();
 
-if (!prompt) {
-alert("اكتب وصف الصورة أولاً.");
-return;
-}
+  if (!prompt) {
+    alert("اكتب وصف الصورة أولاً.");
+    return;
+  }
 
-isGenerating = true;
-const thisRequest = ++requestNumber;
+  isGenerating = true;
+  const thisRequest = ++requestNumber;
 
-$("generateBtn").disabled = true;
-$("emptyState").classList.add("hidden");
-$("resultState").classList.add("hidden");
-$("errorState").classList.add("hidden");
+  $("generateBtn").disabled = true;
+  $("emptyState").classList.add("hidden");
+  $("resultState").classList.add("hidden");
+  $("errorState").classList.add("hidden");
+  $("loadingState").classList.remove("hidden");
+  $("loadingState").classList.add("flex");
 
-$("loadingState").classList.remove("hidden");
-$("loadingState").classList.add("flex");
+  const width = Number($("width").value);
+  const ratio = Number($("ratio").value);
+  const height = Math.round(width / ratio);
+  const count = Number($("count").value);
+  const engine = $("engine").value;
 
-$("loadingMessage").textContent = "جاري إنشاء الصورة...";
+  const style = STYLE_PROMPTS[selectedStyle] || selectedStyle;
+  const fullPrompt = `${prompt}, ${style}, ${QUALITY_SUFFIX}`.slice(0, 1500);
 
-const width = Number($("width").value);
-const ratio = Number($("ratio").value);
-const height = Math.round(width / ratio);
+  let done = 0;
+  let lastError = null;
+  let usedFallback = false;
 
-const style = STYLE_PROMPTS[selectedStyle] || selectedStyle;
+  for (let i = 1; i <= count; i++) {
 
-const fullPrompt = `${prompt}, ${style}, ${QUALITY_SUFFIX}`.slice(0, 1500);
+    if (thisRequest !== requestNumber) return;
 
-const seed = Math.floor(Math.random() * 999999999);
-const imageUrl = buildImageUrl(fullPrompt, width, height, seed);
+    $("loadingMessage").textContent = count > 1 ? `جاري إنشاء الصورة ${i} من ${count}...` : "جاري إنشاء الصورة...";
 
-let finalUrl = null;
-let lastError = null;
-const maxAttempts = 3;
+    let url = null;
 
-for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
 
-if (thisRequest !== requestNumber) return;
+      if (engine.startsWith("puter:")) {
 
-try {
+        try {
+          url = await generateViaPuter(engine.slice(6), fullPrompt);
+        } catch (e) {
+          // تحويل تلقائي إلى المحرك المجاني
+          usedFallback = true;
+          $("loadingMessage").textContent = "تعذر نموذج Puter، التحويل إلى Pollinations...";
+          url = await generateViaPollinations(fullPrompt, width, height, thisRequest);
+        }
 
-if (attempt > 1) {
-$("loadingMessage").textContent =
-`الخدمة مشغولة، إعادة المحاولة ${attempt}/${maxAttempts}...`;
-}
+      } else {
 
-finalUrl = await fetchImageBlob(imageUrl);
-break;
+        url = await generateViaPollinations(fullPrompt, width, height, thisRequest);
 
-} catch (error) {
+      }
 
-lastError = error;
+    } catch (e) {
 
-// خطأ شبكة/CORS: جرّب التحميل عبر وسم الصورة مرة واحدة
-if (error instanceof TypeError) {
-try {
-finalUrl = await loadViaImgTag(imageUrl);
-break;
-} catch (e) {
-lastError = e;
-break;
-}
-}
+      lastError = e;
+      break;
 
-// الخدمة مشغولة: انتظر ثم أعد المحاولة بدل الفشل
-if (error.retryable && attempt < maxAttempts) {
+    }
 
-for (let s = 16; s > 0; s--) {
-$("loadingMessage").textContent =
-`الخدمة المجانية مشغولة. إعادة المحاولة بعد ${s} ثانية...`;
-await sleep(1000);
-}
+    if (thisRequest !== requestNumber) return;
 
-continue;
-}
+    currentImage = url;
+    $("resultImage").src = url;
+    $("resultState").classList.remove("hidden");
 
-break;
+    gallery.unshift({ url, prompt });
+    renderGallery();
+    done++;
 
-}
+  }
 
-}
+  if (thisRequest !== requestNumber) return;
 
-if (thisRequest !== requestNumber) return;
+  isGenerating = false;
+  $("generateBtn").disabled = false;
+  $("loadingState").classList.add("hidden");
+  $("loadingState").classList.remove("flex");
 
-isGenerating = false;
-$("generateBtn").disabled = false;
-$("loadingState").classList.add("hidden");
-$("loadingState").classList.remove("flex");
+  if (!done) {
 
-if (!finalUrl) {
+    $("errorState").classList.remove("hidden");
 
-$("errorState").classList.remove("hidden");
+    $("errorMessage").textContent =
+      lastError && lastError.message === "TIMEOUT"
+        ? "انتهت مهلة الانتظار. جرب محركاً آخر أو حاول لاحقاً."
+        : "تعذر توليد الصورة. سجّل الدخول إلى Puter من الأعلى أو جرب محرك Pollinations.";
 
-$("errorMessage").textContent =
-lastError && lastError.name === "AbortError"
-? "انتهت مهلة الانتظار. جرب دقة أقل أو حاول لاحقاً."
-: "تعذر توليد الصورة. الخدمة المجانية مشغولة حالياً. حاول مرة أخرى بعد قليل.";
+  } else if (usedFallback) {
 
-return;
+    console.info("تم استخدام Pollinations كبديل عن Puter.");
 
-}
-
-currentImage = finalUrl;
-
-$("resultImage").src = finalUrl;
-$("resultState").classList.remove("hidden");
-
-gallery.unshift({
-url: finalUrl,
-prompt: prompt,
-seed: seed
-});
-
-renderGallery();
+  }
 
 }
 
 
 // ======================================
-// معرض الصور
+// المعرض والتحميل
 // ======================================
 
 function renderGallery() {
 
-$("gallery").innerHTML = "";
+  $("gallery").innerHTML = "";
 
-if (!gallery.length) {
+  if (!gallery.length) {
+    $("gallery").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>';
+    return;
+  }
 
-$("gallery").innerHTML =
-'<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>';
+  gallery.forEach(item => {
 
-return;
+    const card = document.createElement("div");
+    card.className = "card";
 
-}
+    const img = document.createElement("img");
+    img.src = item.url;
+    img.alt = item.prompt;
 
-gallery.forEach(item => {
+    const content = document.createElement("div");
+    content.className = "p-2";
 
-const card = document.createElement("div");
-card.className = "card";
+    const text = document.createElement("p");
+    text.className = "text-xs text-slate-400 truncate";
+    text.textContent = item.prompt;
 
-const img = document.createElement("img");
-img.src = item.url;
-img.alt = item.prompt;
+    const button = document.createElement("button");
+    button.className = "text-xs text-indigo-300 mt-2";
+    button.textContent = "عرض الصورة";
 
-const content = document.createElement("div");
-content.className = "p-2";
+    button.onclick = () => {
+      currentImage = item.url;
+      $("resultImage").src = item.url;
+      $("emptyState").classList.add("hidden");
+      $("errorState").classList.add("hidden");
+      $("resultState").classList.remove("hidden");
+    };
 
-const text = document.createElement("p");
-text.className = "text-xs text-slate-400 truncate";
-text.textContent = item.prompt;
+    content.append(text, button);
+    card.append(img, content);
+    $("gallery").appendChild(card);
 
-const button = document.createElement("button");
-button.className = "text-xs text-indigo-300 mt-2";
-button.textContent = "عرض الصورة";
-
-button.onclick = () => {
-
-currentImage = item.url;
-
-$("resultImage").src = item.url;
-$("emptyState").classList.add("hidden");
-$("errorState").classList.add("hidden");
-$("resultState").classList.remove("hidden");
-
-};
-
-content.append(text, button);
-card.append(img, content);
-
-$("gallery").appendChild(card);
-
-});
+  });
 
 }
 
+async function downloadImage() {
 
-// ======================================
-// تحميل الصورة (من النسخة المحلية دون طلب جديد)
-// ======================================
+  if (!currentImage) return;
 
-function downloadImage() {
+  let href = currentImage;
+  let temp = null;
 
-if (!currentImage) return;
+  // الروابط الخارجية تُحوَّل إلى blob ليعمل التحميل مباشرة
+  if (!/^(blob:|data:)/.test(href)) {
+    try {
+      const r = await fetch(href);
+      temp = URL.createObjectURL(await r.blob());
+      href = temp;
+    } catch (e) {
+      window.open(currentImage, "_blank", "noopener");
+      return;
+    }
+  }
 
-const link = document.createElement("a");
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = "creative-studio-" + Date.now() + ".png";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 
-link.href = currentImage;
-link.download = "creative-studio-" + Date.now() + ".jpg";
-
-document.body.appendChild(link);
-link.click();
-link.remove();
+  if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
 
 }
-
-
-// ======================================
-// مسح المعرض
-// ======================================
 
 function clearGallery() {
 
-if (!confirm("هل تريد مسح جميع الصور من المعرض؟")) return;
+  if (!confirm("هل تريد مسح جميع الصور من المعرض؟")) return;
 
-gallery.forEach(item => {
-if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url);
-});
+  gallery.forEach(item => {
+    if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url);
+  });
 
-gallery = [];
-
-renderGallery();
+  gallery = [];
+  renderGallery();
 
 }
 
 
 // ======================================
-// البحث باستخدام Enter
+// المساعد الذكي (محادثة)
 // ======================================
 
-$("characterSearch").addEventListener("keydown", event => {
+const CHAT_SYSTEM =
+  "You are a helpful assistant inside an image-creation studio. " +
+  "Always answer in the same language the user writes in. " +
+  "Be accurate and concise, and say so when you are not sure. " +
+  "If the user asks for an image prompt, write it in English.";
 
-if (event.key === "Enter") {
-searchCharacter();
+let chatHistory = [];
+let isChatting = false;
+
+function addChatBubble(role, text) {
+
+  const box = document.createElement("div");
+
+  box.className = role === "user"
+    ? "rounded-xl p-3 bg-indigo-900/40 border border-indigo-700/50"
+    : "rounded-xl p-3 bg-slate-800/60 border border-slate-700";
+
+  box.style.whiteSpace = "pre-wrap";
+  box.textContent = text;
+
+  $("chatLog").appendChild(box);
+  $("chatLog").scrollTop = $("chatLog").scrollHeight;
+
+  return box;
+
 }
 
-});
+async function sendChat() {
+
+  if (isChatting) return;
+
+  const text = $("chatInput").value.trim();
+
+  if (!text) return;
+
+  isChatting = true;
+  $("chatBtn").disabled = true;
+  $("chatInput").value = "";
+
+  addChatBubble("user", text);
+  chatHistory.push({ role: "user", content: text });
+
+  const waiting = addChatBubble("assistant", "...");
+
+  try {
+
+    if (!puterReady()) throw new Error("PUTER_MISSING");
+
+    const model = await pickChatModel();
+    const opts = model ? { model } : {};
+
+    const messages = [{ role: "system", content: CHAT_SYSTEM }, ...chatHistory.slice(-12)];
+
+    const res = await withTimeout(puter.ai.chat(messages, opts), 120000);
+    const answer = extractText(res).trim();
+
+    if (!answer) throw new Error("EMPTY");
+
+    waiting.textContent = answer;
+    chatHistory.push({ role: "assistant", content: answer });
+
+  } catch (error) {
+
+    waiting.textContent = aiErrorMessage(error);
+    chatHistory.pop();
+
+  } finally {
+
+    isChatting = false;
+    $("chatBtn").disabled = false;
+    $("chatLog").scrollTop = $("chatLog").scrollHeight;
+
+  }
+
+}
+
+function useLastAnswer() {
+
+  const last = [...chatHistory].reverse().find(m => m.role === "assistant");
+
+  if (!last) {
+    alert("لا يوجد رد من المساعد بعد.");
+    return;
+  }
+
+  $("prompt").value = last.content.slice(0, 1200);
+  $("prompt").focus();
+
+}
+
+function clearChat() {
+
+  chatHistory = [];
+  $("chatLog").innerHTML = '<p class="text-xs text-slate-500">اسأل عن أي موضوع، أو اطلب مساعدة في كتابة وصف الصورة.</p>';
+
+}
+
+$("chatInput").addEventListener("keydown", e => { if (e.key === "Enter") sendChat(); });
+$("characterSearch").addEventListener("keydown", e => { if (e.key === "Enter") searchCharacter(); });
 
 </script>
 
