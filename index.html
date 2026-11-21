@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- سياسة أمان المحتوى: تحدد المصادر المسموح بها فقط. إن تعطل Puter فاحذف هذا الوسم أولاً للتشخيص -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'none'; worker-src blob:; connect-src 'self' https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>
+// منع تضمين الصفحة داخل إطار موقع آخر (Clickjacking)
+if (window.top !== window.self) {
+  document.documentElement.style.display = "none";
+  try { window.top.location = window.self.location; } catch (e) {}
+}
+</script>
 <title>Creative Studio AI Ultimate</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://js.puter.com/v2/"></script>
@@ -93,7 +103,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <h3 class="font-bold text-indigo-300 mb-3 flex items-center gap-2"><svg class="ic"><use href="#i-search"/></svg>البحث عن الشخصيات</h3>
 
 <div class="flex gap-2">
-<input id="characterSearch" class="field"
+<input id="characterSearch" class="field" maxlength="120" autocomplete="off"
 placeholder="اسم، أو وصف: Naruto، ناروتو، ملاكم بقفازات حمراء...">
 <button id="searchBtn" class="btn primary whitespace-nowrap" onclick="searchCharacter()">بحث</button>
 </div>
@@ -118,7 +128,7 @@ placeholder="اسم، أو وصف: Naruto، ناروتو، ملاكم بقفاز
 <h4 id="characterName" class="font-bold"></h4>
 <p id="characterSource" class="text-xs text-emerald-400 mt-1"></p>
 <p id="characterDescription" class="text-sm text-slate-400 mt-2 leading-7"></p>
-<a id="wikiLink" target="_blank" rel="noopener"
+<a id="wikiLink" target="_blank" rel="noopener noreferrer"
 class="text-xs text-indigo-300 inline-flex items-center gap-1 mt-3">قراءة المزيد <svg class="ic"><use href="#i-link"/></svg></a>
 <button onclick="useCharacter()" class="btn primary w-full mt-4">
 استخدام الشخصية في الصورة
@@ -134,7 +144,7 @@ class="text-xs text-indigo-300 inline-flex items-center gap-1 mt-3">قراءة �
 <p class="text-sm font-bold">اسحب صورة هنا أو اضغط للاختيار</p>
 <p class="text-xs text-slate-500 mt-1">يمكنك أيضاً لصقها بـ Ctrl+V</p>
 </div>
-<input id="fileInput" type="file" accept="image/*" class="hidden">
+<input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
 
 <div id="uploadBox" class="hidden mt-3">
 <img id="uploadPreview" class="rounded-xl mx-auto max-h-56 object-contain" alt="">
@@ -167,7 +177,7 @@ class="text-xs text-indigo-300 inline-flex items-center gap-1 mt-3">قراءة �
 <!-- الوصف -->
 <div>
 <label class="text-sm font-bold block mb-2">وصف الصورة</label>
-<textarea id="prompt" rows="4" class="field"
+<textarea id="prompt" rows="4" class="field" maxlength="1200"
 placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."></textarea>
 <div class="flex justify-between items-center mt-2">
 <p class="text-xs text-slate-500">اكتب وصفاً مفصلاً أو دع المساعد يحسّنه.</p>
@@ -300,7 +310,7 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 </div>
 
 <div class="flex gap-2">
-<input id="chatInput" class="field" placeholder="اكتب سؤالك هنا...">
+<input id="chatInput" class="field" maxlength="2000" autocomplete="off" placeholder="اكتب سؤالك هنا...">
 <button id="chatBtn" class="btn primary whitespace-nowrap" onclick="sendChat()"><svg class="ic"><use href="#i-send"/></svg>إرسال</button>
 </div>
 
@@ -365,6 +375,55 @@ const NEGATIVE_PROMPT =
 const QUALITY_SUFFIX =
   "masterpiece, ultra detailed, high quality, sharp focus, " +
   "professional artwork, beautiful composition";
+
+// ======================================
+// دوال الحماية
+// ======================================
+
+const ALLOWED_LINK_HOSTS = ["anilist.co", "myanimelist.net", "wikipedia.org", "trace.moe"];
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const ALLOWED_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_GALLERY = 40;
+
+// يقبل https فقط، ويمكن حصره بقائمة نطاقات
+function safeUrl(u, hosts) {
+  try {
+    const x = new URL(u);
+    if (x.protocol !== "https:") return "";
+    if (hosts && !hosts.some(h => x.hostname === h || x.hostname.endsWith("." + h))) return "";
+    return x.href;
+  } catch (e) {
+    return "";
+  }
+}
+
+// تنظيف النصوص: إزالة محارف التحكم وحيل عكس الاتجاه وتحديد الطول
+function clean(s, max) {
+  return String(s ?? "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u202A-\u202E\u2066-\u2069]/g, "")
+    .trim()
+    .slice(0, max);
+}
+
+// تحديد معدل الطلبات من جهة المتصفح
+const lastCall = {};
+function tooFast(key, ms) {
+  const now = Date.now();
+  if (lastCall[key] && now - lastCall[key] < ms) return true;
+  lastCall[key] = now;
+  return false;
+}
+
+function sanitizeItem(item) {
+  return {
+    source: clean(item.source, 40),
+    title: clean(item.title, 150),
+    subtitle: clean(item.subtitle, 150),
+    description: clean(item.description, 3000),
+    image: safeUrl(item.image),
+    url: safeUrl(item.url, ALLOWED_LINK_HOSTS)
+  };
+}
 
 const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portrait 2:3", "1.778": "wide cinematic 16:9" };
 
@@ -598,12 +657,14 @@ async function searchWiki(lang, q) {
 
 async function searchCharacter(overrideQuery) {
 
-  const query = (typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value).trim();
+  const query = clean(typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value, 120);
 
   if (!query) {
     alert("اكتب اسم الشخصية أولاً.");
     return;
   }
+
+  if (tooFast("search", 1200)) return;
 
   $("characterSearch").value = query;
   $("searchLoading").classList.remove("hidden");
@@ -618,7 +679,7 @@ async function searchCharacter(overrideQuery) {
     ...WIKI_LANGS.map(l => searchWiki(l, query))
   ]);
 
-  const results = settled.filter(x => x.status === "fulfilled").flatMap(x => x.value);
+  const results = settled.filter(x => x.status === "fulfilled").flatMap(x => x.value).slice(0, 60).map(sanitizeItem);
 
   $("searchLoading").classList.add("hidden");
   $("searchLoading").classList.remove("flex");
@@ -684,7 +745,12 @@ function showCharacter(item) {
     selectedCharacter.description.slice(0, 1400) ||
     "لم يتوفر وصف لهذه الشخصية. يمكنك استخدام اسمها مباشرة.";
 
-  $("wikiLink").href = item.url;
+  if (item.url) {
+    $("wikiLink").href = item.url;
+    $("wikiLink").classList.remove("hidden");
+  } else {
+    $("wikiLink").classList.add("hidden");
+  }
 
   if (item.image) {
     $("characterImage").src = item.image;
@@ -733,12 +799,14 @@ function showChips(names) {
 
 async function smartSearch() {
 
-  const text = $("characterSearch").value.trim();
+  const text = clean($("characterSearch").value, 300);
 
   if (!text) {
     alert("اكتب وصفاً أو اسماً تقريبياً أولاً.");
     return;
   }
+
+  if (tooFast("smart", 3000)) return;
 
   $("smartBtn").disabled = true;
   $("smartChips").innerHTML = '<span class="text-xs text-indigo-300">المساعد يحلل طلبك...</span>';
@@ -751,7 +819,7 @@ async function smartSearch() {
       "Do not identify private individuals. User text: " + text
     );
 
-    const names = (aiJSON(answer).names || []).slice(0, 4);
+    const names = (aiJSON(answer).names || []).slice(0, 4).map(n => clean(n, 80)).filter(Boolean);
 
     if (!names.length) throw new Error("NO_NAMES");
 
@@ -817,8 +885,13 @@ function fileToDataUrl(file, maxSide = 1024) {
 
 async function setUploaded(file) {
 
-  if (!file || !file.type.startsWith("image/")) {
-    alert("اختر ملف صورة.");
+  if (!file || !ALLOWED_UPLOAD_TYPES.includes(file.type)) {
+    alert("الأنواع المسموحة: JPG, PNG, WEBP, GIF.");
+    return;
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    alert("حجم الصورة كبير. الحد الأقصى 15 ميجابايت.");
     return;
   }
 
@@ -852,7 +925,7 @@ const drop = $("dropZone");
 drop.addEventListener("drop", e => setUploaded(e.dataTransfer.files[0]));
 
 document.addEventListener("paste", e => {
-  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+  const item = [...(e.clipboardData?.items || [])].find(i => ALLOWED_UPLOAD_TYPES.includes(i.type));
   if (item) setUploaded(item.getAsFile());
 });
 
@@ -878,7 +951,7 @@ function escapeHtml(s) {
 
 async function identifyImage() {
 
-  if (!uploadedDataUrl) return;
+  if (!uploadedDataUrl || tooFast("identify", 3000)) return;
 
   $("identifyResult").innerHTML = "";
   setIdentifyLoading(true, "المساعد يحلل الصورة...");
@@ -897,12 +970,12 @@ async function identifyImage() {
     );
 
     const data = aiJSON(answer);
-    const names = [...new Set([...(data.characters || []), ...(data.queries || [])])].slice(0, 6);
+    const names = [...new Set([...(data.characters || []), ...(data.queries || [])].map(n => clean(n, 80)).filter(Boolean))].slice(0, 6);
 
     const box = addInfoBox(
       `<p class="font-bold text-emerald-300 mb-2">نتيجة التحليل</p>` +
-      `<p class="text-slate-300 leading-7">${escapeHtml(data.description)}</p>` +
-      (data.series ? `<p class="text-xs text-slate-400 mt-2">العمل المحتمل: ${escapeHtml(data.series)}</p>` : "")
+      `<p class="text-slate-300 leading-7">${escapeHtml(clean(data.description, 800))}</p>` +
+      (data.series ? `<p class="text-xs text-slate-400 mt-2">العمل المحتمل: ${escapeHtml(clean(data.series, 150))}</p>` : "")
     );
 
     if (names.length) {
@@ -918,11 +991,11 @@ async function identifyImage() {
       box.appendChild(wrap);
     }
 
-    if (data.image_prompt) {
+    if (clean(data.image_prompt, 1200)) {
       const b = document.createElement("button");
       b.className = "btn ghost text-xs mt-3 w-full";
       b.textContent = "استخدام وصف مشابه لتوليد صورة";
-      b.onclick = () => { $("prompt").value = data.image_prompt; $("prompt").focus(); };
+      b.onclick = () => { $("prompt").value = clean(data.image_prompt, 1200); $("prompt").focus(); };
       box.appendChild(b);
     }
 
@@ -940,7 +1013,7 @@ async function identifyImage() {
 
 async function traceAnime() {
 
-  if (!uploadedFile) return;
+  if (!uploadedFile || tooFast("trace", 3000)) return;
 
   $("identifyResult").innerHTML = "";
   setIdentifyLoading(true, "جاري البحث عن مصدر المشهد...");
@@ -965,14 +1038,15 @@ async function traceAnime() {
     list.forEach(item => {
 
       const t = item.anilist?.title || {};
-      const title = t.english || t.romaji || t.native || "غير معروف";
+      const title = clean(t.english || t.romaji || t.native || "غير معروف", 150);
+      const thumb = safeUrl(item.image);
       const pct = Math.round((item.similarity || 0) * 100);
       const mins = Math.floor((item.from || 0) / 60);
       const secs = String(Math.floor((item.from || 0) % 60)).padStart(2, "0");
 
       const box = addInfoBox(
         `<div class="flex gap-3 items-center">` +
-        (item.image ? `<img src="${escapeHtml(item.image)}" alt="" style="width:96px;height:60px;object-fit:cover;border-radius:8px">` : "") +
+        (thumb ? `<img src="${escapeHtml(thumb)}" alt="" style="width:96px;height:60px;object-fit:cover;border-radius:8px">` : "") +
         `<div class="min-w-0"><p class="font-bold truncate">${escapeHtml(title)}</p>` +
         `<p class="text-xs text-slate-400">الحلقة ${escapeHtml(item.episode ?? "؟")} • الدقيقة ${mins}:${secs}</p>` +
         `<p class="text-xs ${pct >= 87 ? "text-emerald-400" : "text-amber-400"}">تطابق ${pct}%${pct < 87 ? " (ثقة منخفضة)" : ""}</p></div></div>`
@@ -1005,12 +1079,14 @@ async function traceAnime() {
 
 async function enhancePrompt() {
 
-  const text = $("prompt").value.trim();
+  const text = clean($("prompt").value, 1200);
 
   if (!text) {
     alert("اكتب فكرة أولاً ثم اضغط تحسين.");
     return;
   }
+
+  if (tooFast("enhance", 3000)) return;
 
   $("enhanceBtn").disabled = true;
 
@@ -1024,7 +1100,7 @@ async function enhancePrompt() {
       "Preferred style: " + style + ". Keep it under 120 words. Reply with the prompt only. Idea: " + text
     );
 
-    if (answer) $("prompt").value = answer.replace(/^["'\s]+|["'\s]+$/g, "");
+    if (answer) $("prompt").value = clean(answer.replace(/^["'\s]+|["'\s]+$/g, ""), 1200);
 
   } catch (e) {
 
@@ -1158,7 +1234,8 @@ async function generateViaPuter(model, fullPrompt) {
 
   const src = el?.src;
 
-  if (!src) throw new Error("EMPTY");
+  // المسموح: صور base64 أو blob أو رابط https فقط
+  if (!src || !/^(data:image\/(png|jpeg|webp|gif);base64,|blob:|https:)/.test(src)) throw new Error("EMPTY");
 
   return src;
 
@@ -1168,12 +1245,14 @@ async function generateImage() {
 
   if (isGenerating) return;
 
-  const prompt = $("prompt").value.trim();
+  const prompt = clean($("prompt").value, 1200);
 
   if (!prompt) {
     alert("اكتب وصف الصورة أولاً.");
     return;
   }
+
+  if (tooFast("generate", 2500)) return;
 
   isGenerating = true;
   const thisRequest = ++requestNumber;
@@ -1239,6 +1318,12 @@ async function generateImage() {
     $("resultState").classList.remove("hidden");
 
     gallery.unshift({ url, prompt });
+
+    while (gallery.length > MAX_GALLERY) {
+      const old = gallery.pop();
+      if (old.url.startsWith("blob:")) URL.revokeObjectURL(old.url);
+    }
+
     renderGallery();
     done++;
 
@@ -1259,10 +1344,6 @@ async function generateImage() {
       lastError && lastError.message === "TIMEOUT"
         ? "انتهت مهلة الانتظار. جرب محركاً آخر أو حاول لاحقاً."
         : "تعذر توليد الصورة. سجّل الدخول إلى Puter من الأعلى أو جرب محرك Pollinations.";
-
-  } else if (usedFallback) {
-
-    console.info("تم استخدام Pollinations كبديل عن Puter.");
 
   }
 
@@ -1397,9 +1478,9 @@ async function sendChat() {
 
   if (isChatting) return;
 
-  const text = $("chatInput").value.trim();
+  const text = clean($("chatInput").value, 2000);
 
-  if (!text) return;
+  if (!text || tooFast("chat", 1200)) return;
 
   isChatting = true;
   $("chatBtn").disabled = true;
@@ -1451,7 +1532,7 @@ function useLastAnswer() {
     return;
   }
 
-  $("prompt").value = last.content.slice(0, 1200);
+  $("prompt").value = clean(last.content, 1200);
   $("prompt").focus();
 
 }
