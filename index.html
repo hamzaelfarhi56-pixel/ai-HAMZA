@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -91,7 +90,7 @@ class="text-xs text-indigo-300 inline-block mt-3">قراءة المزيد ↗</a
 <div>
 <label class="text-sm font-bold block mb-2">وصف الصورة</label>
 <textarea id="prompt" rows="4" class="field"
-placeholder="A warrior standing in a dramatic cinematic scene..."></textarea>
+placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."></textarea>
 <p class="text-xs text-slate-500 mt-2">
 اكتب وصفاً مفصلاً أو ابحث عن شخصية مشهورة.
 </p>
@@ -102,7 +101,11 @@ placeholder="A warrior standing in a dramatic cinematic scene..."></textarea>
 <label class="text-sm font-bold block mb-3">الأسلوب الفني</label>
 <div class="grid grid-cols-3 gap-2" id="styles">
 
-<button class="style active" data-style="cinematic photorealistic">
+<!-- الأسلوب الجديد: مطابق لجودة الصورة المرجعية -->
+<button class="style active" data-style="dark">
+🥊 أنمي مظلم
+</button>
+<button class="style" data-style="cinematic photorealistic">
 🎬 واقعي
 </button>
 <button class="style" data-style="anime illustration">
@@ -126,9 +129,6 @@ placeholder="A warrior standing in a dramatic cinematic scene..."></textarea>
 <button class="style" data-style="watercolor painting">
 🖌️ مائي
 </button>
-<button class="style" data-style="dark fantasy artwork">
-🌑 مظلم
-</button>
 
 </div>
 </div>
@@ -139,9 +139,9 @@ placeholder="A warrior standing in a dramatic cinematic scene..."></textarea>
 <div>
 <label class="text-sm block mb-2">دقة الصورة</label>
 <select id="width" class="field">
-<option value="1024">1024px - عالية</option>
+<option value="1024">1024px - عالية (أسرع)</option>
 <option value="1280">1280px - مرتفعة</option>
-<option value="1536">1536px - فائقة</option>
+<option value="1536">1536px - فائقة (أبطأ)</option>
 </select>
 </div>
 
@@ -157,15 +157,21 @@ placeholder="A warrior standing in a dramatic cinematic scene..."></textarea>
 
 </div>
 
+<!-- مفتاح اختياري -->
+<div>
+<label class="text-sm block mb-2">مفتاح Pollinations (اختياري)</label>
+<input id="apiKey" type="password" class="field" placeholder="pk_... أو sk_..." autocomplete="off">
+<p class="text-xs text-slate-500 mt-2">
+بدون مفتاح: الخدمة المجانية تسمح بطلب واحد كل ~15 ثانية. بالمفتاح يقل الانتظار بين الصور.
+احصل عليه من enter.pollinations.ai
+</p>
+</div>
+
 <!-- زر التوليد -->
 <button id="generateBtn" onclick="generateImage()"
 class="btn primary w-full text-base">
 ✨ توليد الصورة الآن
 </button>
-
-<p class="text-xs text-slate-500 text-center">
-لا تحتاج إلى إدخال مفتاح وصول. يعتمد التوليد على توفر الخدمة العامة.
-</p>
 
 </section>
 
@@ -245,9 +251,9 @@ alt="الصورة المولدة">
 <h3 class="text-white font-bold mb-2">💡 نصائح لتحسين جودة الصور</h3>
 <ul class="list-disc pr-5 space-y-1">
 <li>اكتب وصفاً دقيقاً باللغة الإنجليزية عند الإمكان.</li>
+<li>حدد زاوية التصوير (low angle) والإضاءة (rim light) والخلفية (red smoke).</li>
 <li>حدد ملامح الوجه والملابس والألوان.</li>
-<li>حدد زاوية التصوير والإضاءة والخلفية.</li>
-<li>استخدم دقة 1280 أو 1536 إذا كانت الخدمة تدعمها.</li>
+<li>الدقة الأعلى = وقت توليد أطول.</li>
 <li>اختر الأسلوب الفني المناسب للصورة.</li>
 </ul>
 </div>
@@ -259,7 +265,7 @@ alt="الصورة المولدة">
 <footer class="text-center text-xs text-slate-600 py-7">
 Creative Studio AI Ultimate © 2026
 <br>Character Search: Wikipedia
-<br>Image Generation: Pollinations Legacy
+<br>Image Generation: Pollinations
 </footer>
 
 <script>
@@ -268,14 +274,44 @@ Creative Studio AI Ultimate © 2026
 // المتغيرات
 // ======================================
 
-let selectedStyle = "cinematic photorealistic";
+let selectedStyle = "dark";
 let selectedCharacter = null;
-let currentImage = null;
+let currentImage = null;      // رابط blob محلي
 let gallery = [];
 let isGenerating = false;
 let requestNumber = 0;
 
 const $ = id => document.getElementById(id);
+
+// أوصاف الأساليب. الأسلوب "dark" يطابق الصورة المرجعية
+const STYLE_PROMPTS = {
+  dark:
+    "dark anime illustration, seinen manga style, low angle shot, " +
+    "dramatic cinematic lighting, strong rim light, volumetric light beam from above, " +
+    "deep black shadows, high contrast, red smoke and mist background, " +
+    "sharp clean lineart, detailed muscles, gritty textures, dark moody atmosphere"
+};
+
+const NEGATIVE_PROMPT =
+  "blurry, low quality, worst quality, deformed, bad anatomy, extra fingers, " +
+  "extra limbs, watermark, text, logo, cropped, jpeg artifacts, flat colors";
+
+const QUALITY_SUFFIX =
+  "masterpiece, ultra detailed, high quality, sharp focus, " +
+  "professional artwork, beautiful composition";
+
+
+// ======================================
+// حفظ مفتاح الخدمة محلياً (اختياري)
+// ======================================
+
+try {
+  $("apiKey").value = localStorage.getItem("pollKey") || "";
+} catch (e) {}
+
+$("apiKey").addEventListener("change", () => {
+  try { localStorage.setItem("pollKey", $("apiKey").value.trim()); } catch (e) {}
+});
 
 
 // ======================================
@@ -452,15 +488,95 @@ function useCharacter() {
 
 if (!selectedCharacter) return;
 
-const details = selectedCharacter.description.slice(0, 900);
+// وصف قصير فقط: الأوصاف الطويلة تبطئ التوليد وتشوّش النموذج
+const details = selectedCharacter.description.slice(0, 400);
 
 $("prompt").value =
-`Create an extremely detailed professional artwork of ${selectedCharacter.name}. ` +
-`Character information: ${details}. ` +
-`Preserve the recognizable original appearance, hairstyle, clothing, colors and distinctive features. ` +
-`Beautiful composition, accurate anatomy, detailed face, expressive eyes, professional lighting.`;
+`Detailed professional artwork of ${selectedCharacter.name}. ` +
+`${details} ` +
+`Keep the recognizable original appearance, hairstyle, clothing and colors. ` +
+`Detailed face, accurate anatomy.`;
 
 $("prompt").focus();
+
+}
+
+
+// ======================================
+// أدوات التوليد
+// ======================================
+
+function buildImageUrl(fullPrompt, width, height, seed) {
+
+const key = $("apiKey").value.trim();
+const enc = encodeURIComponent(fullPrompt);
+
+const params =
+`width=${width}&height=${height}&seed=${seed}` +
+`&model=flux&nologo=true` +
+`&negative_prompt=${encodeURIComponent(NEGATIVE_PROMPT)}`;
+
+// مع المفتاح: الواجهة الجديدة (حدود أوسع). بدونه: الواجهة المجانية القديمة
+if (key) {
+return `https://gen.pollinations.ai/image/${enc}?${params}&key=${encodeURIComponent(key)}`;
+}
+
+return `https://image.pollinations.ai/prompt/${enc}?${params}`;
+
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// طلب واحد فقط للصورة، ثم تحويلها إلى رابط محلي (blob)
+// هذا يمنع تكرار الطلب من المعرض والتحميل، وكل طلب مكرر يستهلك دور الانتظار
+async function fetchImageBlob(url) {
+
+const controller = new AbortController();
+const timer = setTimeout(() => controller.abort(), 180000);
+
+try {
+
+const response = await fetch(url, { signal: controller.signal });
+
+if (response.status === 429 || response.status >= 500) {
+const err = new Error("busy");
+err.retryable = true;
+throw err;
+}
+
+if (!response.ok) throw new Error("HTTP " + response.status);
+
+const blob = await response.blob();
+
+if (!blob.type.startsWith("image/")) {
+const err = new Error("not image");
+err.retryable = true;
+throw err;
+}
+
+return URL.createObjectURL(blob);
+
+} finally {
+clearTimeout(timer);
+}
+
+}
+
+// خطة بديلة إذا منع المتصفح fetch (CORS): تحميل عبر وسم الصورة
+function loadViaImgTag(url) {
+
+return new Promise((resolve, reject) => {
+
+const img = new Image();
+const timer = setTimeout(() => reject(new Error("timeout")), 180000);
+
+img.onload = () => { clearTimeout(timer); resolve(url); };
+img.onerror = () => { clearTimeout(timer); reject(new Error("load failed")); };
+
+img.referrerPolicy = "no-referrer";
+img.src = url;
+
+});
 
 }
 
@@ -470,9 +586,6 @@ $("prompt").focus();
 // ======================================
 
 async function generateImage() {
-
-// منع طلبين متزامنين فقط
-// لا توجد فترة انتظار إجبارية بين الصور
 
 if (isGenerating) return;
 
@@ -494,103 +607,102 @@ $("errorState").classList.add("hidden");
 $("loadingState").classList.remove("hidden");
 $("loadingState").classList.add("flex");
 
-$("loadingMessage").textContent =
-"جاري إنشاء الصورة بأفضل وصف ممكن...";
+$("loadingMessage").textContent = "جاري إنشاء الصورة...";
 
 const width = Number($("width").value);
 const ratio = Number($("ratio").value);
 const height = Math.round(width / ratio);
 
-// تحسين وصف التوليد
-const qualityPrompt =
-`${prompt}, ${selectedStyle}, ` +
-`masterpiece, ultra detailed, high quality, ` +
-`professional artwork, sharp focus, detailed textures, ` +
-`beautiful composition, excellent lighting, ` +
-`accurate anatomy, rich colors, 8k quality`;
+const style = STYLE_PROMPTS[selectedStyle] || selectedStyle;
+
+const fullPrompt = `${prompt}, ${style}, ${QUALITY_SUFFIX}`.slice(0, 1500);
 
 const seed = Math.floor(Math.random() * 999999999);
+const imageUrl = buildImageUrl(fullPrompt, width, height, seed);
 
-// نقطة التوليد القديمة دون مفتاح
-const imageUrl =
-"https://image.pollinations.ai/prompt/" +
-encodeURIComponent(qualityPrompt) +
-`?width=${width}` +
-`&height=${height}` +
-`&seed=${seed}` +
-`&nologo=true`;
+let finalUrl = null;
+let lastError = null;
+const maxAttempts = 3;
 
-// تحميل الصورة
-const img = new Image();
+for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 
-let completed = false;
+if (thisRequest !== requestNumber) return;
 
-const timeout = setTimeout(() => {
+try {
 
-if (completed || thisRequest !== requestNumber) return;
+if (attempt > 1) {
+$("loadingMessage").textContent =
+`الخدمة مشغولة، إعادة المحاولة ${attempt}/${maxAttempts}...`;
+}
 
-completed = true;
+finalUrl = await fetchImageBlob(imageUrl);
+break;
 
-$("errorState").classList.remove("hidden");
-$("errorMessage").textContent =
-"انتهت مهلة الانتظار. قد تكون خدمة توليد الصور غير متاحة حالياً.";
+} catch (error) {
 
-finishGeneration();
+lastError = error;
 
-}, 180000);
+// خطأ شبكة/CORS: جرّب التحميل عبر وسم الصورة مرة واحدة
+if (error instanceof TypeError) {
+try {
+finalUrl = await loadViaImgTag(imageUrl);
+break;
+} catch (e) {
+lastError = e;
+break;
+}
+}
 
-function finishGeneration() {
+// الخدمة مشغولة: انتظر ثم أعد المحاولة بدل الفشل
+if (error.retryable && attempt < maxAttempts) {
 
-clearTimeout(timeout);
+for (let s = 16; s > 0; s--) {
+$("loadingMessage").textContent =
+`الخدمة المجانية مشغولة. إعادة المحاولة بعد ${s} ثانية...`;
+await sleep(1000);
+}
 
-isGenerating = false;
-$("generateBtn").disabled = false;
+continue;
+}
 
-$("loadingState").classList.add("hidden");
-$("loadingState").classList.remove("flex");
+break;
 
 }
 
-img.onload = function() {
+}
 
-if (completed || thisRequest !== requestNumber) return;
+if (thisRequest !== requestNumber) return;
 
-completed = true;
+isGenerating = false;
+$("generateBtn").disabled = false;
+$("loadingState").classList.add("hidden");
+$("loadingState").classList.remove("flex");
 
-currentImage = imageUrl;
+if (!finalUrl) {
 
-$("resultImage").src = imageUrl;
+$("errorState").classList.remove("hidden");
+
+$("errorMessage").textContent =
+lastError && lastError.name === "AbortError"
+? "انتهت مهلة الانتظار. جرب دقة أقل أو حاول لاحقاً."
+: "تعذر توليد الصورة. الخدمة مشغولة أو تتطلب مفتاحاً. جرب لاحقاً أو أضف مفتاح Pollinations.";
+
+return;
+
+}
+
+currentImage = finalUrl;
+
+$("resultImage").src = finalUrl;
 $("resultState").classList.remove("hidden");
 
 gallery.unshift({
-url: imageUrl,
+url: finalUrl,
 prompt: prompt,
 seed: seed
 });
 
 renderGallery();
-
-finishGeneration();
-
-};
-
-img.onerror = function() {
-
-if (completed || thisRequest !== requestNumber) return;
-
-completed = true;
-
-$("errorState").classList.remove("hidden");
-
-$("errorMessage").textContent =
-"تعذر توليد الصورة. قد تكون خدمة Pollinations القديمة متوقفة أو تتطلب مصادقة. حاول لاحقاً.";
-
-finishGeneration();
-
-};
-
-img.referrerPolicy = "no-referrer";
-img.src = imageUrl;
 
 }
 
@@ -612,7 +724,7 @@ return;
 
 }
 
-gallery.forEach((item, index) => {
+gallery.forEach(item => {
 
 const card = document.createElement("div");
 card.className = "card";
@@ -620,7 +732,6 @@ card.className = "card";
 const img = document.createElement("img");
 img.src = item.url;
 img.alt = item.prompt;
-img.loading = "lazy";
 
 const content = document.createElement("div");
 content.className = "p-2";
@@ -655,39 +766,21 @@ $("gallery").appendChild(card);
 
 
 // ======================================
-// تحميل الصورة
+// تحميل الصورة (من النسخة المحلية دون طلب جديد)
 // ======================================
 
-async function downloadImage() {
+function downloadImage() {
 
 if (!currentImage) return;
 
-try {
-
-const response = await fetch(currentImage);
-
-if (!response.ok) throw new Error("Download failed");
-
-const blob = await response.blob();
-
-const blobUrl = URL.createObjectURL(blob);
-
 const link = document.createElement("a");
 
-link.href = blobUrl;
+link.href = currentImage;
 link.download = "creative-studio-" + Date.now() + ".jpg";
 
 document.body.appendChild(link);
 link.click();
 link.remove();
-
-setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-
-} catch (error) {
-
-window.open(currentImage, "_blank", "noopener");
-
-}
 
 }
 
@@ -699,6 +792,10 @@ window.open(currentImage, "_blank", "noopener");
 function clearGallery() {
 
 if (!confirm("هل تريد مسح جميع الصور من المعرض؟")) return;
+
+gallery.forEach(item => {
+if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url);
+});
 
 gallery = [];
 
