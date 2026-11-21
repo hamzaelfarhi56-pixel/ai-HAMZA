@@ -62,7 +62,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 <div class="flex gap-2">
 <input id="characterSearch" class="field"
-placeholder="Naruto, Luffy, Goku...">
+placeholder="Naruto, Luffy, Goku, ناروتو, 悟空 ...">
 <button id="searchBtn" class="btn primary whitespace-nowrap"
 onclick="searchCharacter()">بحث</button>
 </div>
@@ -71,13 +71,15 @@ onclick="searchCharacter()">بحث</button>
 <div class="spinner"></div> جاري البحث...
 </div>
 
-<div id="characterResults" class="space-y-2 mt-3"></div>
+<div id="characterResults" class="space-y-2 mt-3 max-h-96 overflow-y-auto pl-1"></div>
 </div>
 
 <!-- معلومات الشخصية -->
 <div id="characterInfo" class="hidden card p-4">
 <h3 class="font-bold text-emerald-300 mb-2">معلومات الشخصية</h3>
+<img id="characterImage" class="hidden rounded-lg mb-3 max-h-48 object-cover" alt="">
 <h4 id="characterName" class="font-bold"></h4>
+<p id="characterSource" class="text-xs text-emerald-400 mt-1"></p>
 <p id="characterDescription" class="text-sm text-slate-400 mt-2 leading-7"></p>
 <a id="wikiLink" target="_blank" rel="noopener"
 class="text-xs text-indigo-300 inline-block mt-3">قراءة المزيد ↗</a>
@@ -157,15 +159,9 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 
 </div>
 
-<!-- مفتاح اختياري -->
-<div>
-<label class="text-sm block mb-2">مفتاح Pollinations (اختياري)</label>
-<input id="apiKey" type="password" class="field" placeholder="pk_... أو sk_..." autocomplete="off">
-<p class="text-xs text-slate-500 mt-2">
-بدون مفتاح: الخدمة المجانية تسمح بطلب واحد كل ~15 ثانية. بالمفتاح يقل الانتظار بين الصور.
-احصل عليه من enter.pollinations.ai
+<p class="text-xs text-slate-500 text-center">
+الخدمة المجانية قد تفرض فاصلاً قصيراً بين الصور، وتتم إعادة المحاولة تلقائياً.
 </p>
-</div>
 
 <!-- زر التوليد -->
 <button id="generateBtn" onclick="generateImage()"
@@ -264,7 +260,7 @@ alt="الصورة المولدة">
 
 <footer class="text-center text-xs text-slate-600 py-7">
 Creative Studio AI Ultimate © 2026
-<br>Character Search: Wikipedia
+<br>Character Search: AniList · MyAnimeList · Wikipedia
 <br>Image Generation: Pollinations
 </footer>
 
@@ -302,19 +298,6 @@ const QUALITY_SUFFIX =
 
 
 // ======================================
-// حفظ مفتاح الخدمة محلياً (اختياري)
-// ======================================
-
-try {
-  $("apiKey").value = localStorage.getItem("pollKey") || "";
-} catch (e) {}
-
-$("apiKey").addEventListener("change", () => {
-  try { localStorage.setItem("pollKey", $("apiKey").value.trim()); } catch (e) {}
-});
-
-
-// ======================================
 // اختيار الأسلوب
 // ======================================
 
@@ -335,8 +318,99 @@ selectedStyle = button.dataset.style;
 
 
 // ======================================
-// البحث عن الشخصيات
+// البحث الشامل عن الشخصيات (عدة مصادر معاً)
 // ======================================
+
+// المصادر: AniList + MyAnimeList + ويكيبيديا (إنجليزي، عربي، ياباني، فرنسي، إسباني)
+const WIKI_LANGS = ["en", "ar", "ja", "fr", "es"];
+
+function cleanText(t) {
+return (t || "")
+.replace(/~!.*?!~/gs, "")
+.replace(/<br\s*\/?>/gi, " ")
+.replace(/<[^>]+>/g, "")
+.replace(/__|\*\*|~~/g, "")
+.replace(/\s+/g, " ")
+.trim();
+}
+
+async function searchAniList(q) {
+
+const query = `query($s:String){Page(perPage:10){characters(search:$s){
+name{full native} image{medium} description(asHtml:false) siteUrl
+media(perPage:1){nodes{title{romaji english}}}}}}`;
+
+const r = await fetch("https://graphql.anilist.co", {
+method: "POST",
+headers: { "Content-Type": "application/json", "Accept": "application/json" },
+body: JSON.stringify({ query, variables: { s: q } })
+});
+
+if (!r.ok) throw new Error("AniList");
+
+const d = await r.json();
+
+return (d.data?.Page?.characters || []).map(c => {
+const m = c.media?.nodes?.[0]?.title;
+return {
+source: "AniList",
+title: c.name.full,
+subtitle: m?.english || m?.romaji || "",
+image: c.image?.medium || "",
+description: cleanText(c.description),
+url: c.siteUrl
+};
+});
+
+}
+
+async function searchJikan(q) {
+
+const r = await fetch(
+`https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=10&order_by=favorites&sort=desc`
+);
+
+if (!r.ok) throw new Error("Jikan");
+
+const d = await r.json();
+
+return (d.data || []).map(c => ({
+source: "MyAnimeList",
+title: c.name,
+subtitle: c.name_kanji || "",
+image: c.images?.jpg?.image_url || "",
+description: cleanText(c.about),
+url: c.url
+}));
+
+}
+
+async function searchWiki(lang, q) {
+
+const url =
+`https://${lang}.wikipedia.org/w/api.php?action=query&generator=search` +
+`&gsrsearch=${encodeURIComponent(q)}&gsrlimit=6` +
+`&prop=extracts|pageimages&exintro=1&explaintext=1&exlimit=max` +
+`&piprop=thumbnail&pithumbsize=120&format=json&origin=*`;
+
+const r = await fetch(url);
+
+if (!r.ok) throw new Error("Wikipedia " + lang);
+
+const d = await r.json();
+
+return Object.values(d.query?.pages || {})
+.sort((a, b) => a.index - b.index)
+.map(pg => ({
+source: "Wikipedia " + lang.toUpperCase(),
+title: pg.title,
+subtitle: "",
+image: pg.thumbnail?.source || "",
+description: cleanText(pg.extract),
+url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title.replace(/ /g, "_"))}`
+}));
+
+}
 
 async function searchCharacter() {
 
@@ -353,128 +427,99 @@ $("characterResults").innerHTML = "";
 $("characterInfo").classList.add("hidden");
 $("searchBtn").disabled = true;
 
-try {
+// كل المصادر بالتوازي، وفشل مصدر لا يوقف الباقي
+const tasks = [
+searchAniList(query),
+searchJikan(query),
+...WIKI_LANGS.map(l => searchWiki(l, query))
+];
 
-let data = await wikiSearch("en", query);
-let language = "en";
+const settled = await Promise.allSettled(tasks);
 
-if (!data.query?.search?.length) {
-data = await wikiSearch("ar", query);
-language = "ar";
-}
-
-const pages = data.query?.search || [];
-
-if (!pages.length) {
-
-$("characterResults").textContent =
-"لم نعثر على نتائج. جرب الاسم باللغة الإنجليزية.";
-
-return;
-}
-
-pages.slice(0, 8).forEach(page => {
-
-const item = document.createElement("button");
-
-item.className =
-"card w-full p-3 text-right text-sm hover:border-indigo-500";
-
-item.textContent = page.title;
-
-item.onclick = () => loadCharacter(page.title, language);
-
-$("characterResults").appendChild(item);
-
-});
-
-} catch (error) {
-
-$("characterResults").textContent =
-"تعذر الاتصال بويكيبيديا. تحقق من الإنترنت.";
-
-} finally {
+const results = settled
+.filter(x => x.status === "fulfilled")
+.flatMap(x => x.value);
 
 $("searchLoading").classList.add("hidden");
 $("searchLoading").classList.remove("flex");
 $("searchBtn").disabled = false;
 
+if (!results.length) {
+
+$("characterResults").textContent =
+settled.every(x => x.status === "rejected")
+? "تعذر الاتصال بمصادر البحث. تحقق من الإنترنت."
+: "لم نعثر على نتائج. جرب اسماً آخر.";
+
+return;
 }
 
+results.forEach(item => {
+
+const btn = document.createElement("button");
+btn.className =
+"card w-full p-2 text-right text-sm hover:border-indigo-500 flex items-center gap-3";
+
+if (item.image) {
+const img = document.createElement("img");
+img.src = item.image;
+img.alt = "";
+img.loading = "lazy";
+img.style.cssText = "width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0";
+btn.appendChild(img);
+}
+
+const box = document.createElement("div");
+box.className = "min-w-0 flex-1";
+
+const t = document.createElement("div");
+t.className = "font-bold truncate";
+t.textContent = item.title;
+
+const sub = document.createElement("div");
+sub.className = "text-xs text-slate-400 truncate";
+sub.textContent = item.subtitle ? item.subtitle + " • " + item.source : item.source;
+
+box.append(t, sub);
+btn.appendChild(box);
+
+btn.onclick = () => showCharacter(item);
+
+$("characterResults").appendChild(btn);
+
+});
+
 }
 
 
 // ======================================
-// واجهة ويكيبيديا
+// عرض معلومات الشخصية
 // ======================================
 
-async function wikiSearch(language, query) {
-
-const url =
-`https://${language}.wikipedia.org/w/api.php` +
-`?action=query&list=search&srsearch=${encodeURIComponent(query)}` +
-`&srlimit=8&format=json&origin=*`;
-
-const response = await fetch(url);
-
-if (!response.ok) throw new Error("Search failed");
-
-return response.json();
-
-}
-
-
-// ======================================
-// معلومات الشخصية
-// ======================================
-
-async function loadCharacter(title, language = "en") {
-
-$("characterInfo").classList.remove("hidden");
-$("characterName").textContent = title;
-$("characterDescription").textContent = "جاري جلب المعلومات...";
-
-try {
-
-const url =
-`https://${language}.wikipedia.org/w/api.php` +
-`?action=query&prop=extracts&exintro=1&explaintext=1` +
-`&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-
-const response = await fetch(url);
-
-if (!response.ok) throw new Error("Page unavailable");
-
-const data = await response.json();
-const page = Object.values(data.query.pages)[0];
+function showCharacter(item) {
 
 selectedCharacter = {
-name: title,
-description: page.extract || "",
-url: `https://${language}.wikipedia.org/wiki/${encodeURIComponent(title)}`
+name: item.title,
+series: item.subtitle,
+description: item.description || "",
+url: item.url
 };
 
-$("characterName").textContent = title;
+$("characterInfo").classList.remove("hidden");
+$("characterName").textContent = item.title;
+$("characterSource").textContent = item.source;
 
 $("characterDescription").textContent =
 selectedCharacter.description.slice(0, 1400) ||
-"لم يتوفر وصف لهذه الشخصية.";
+"لم يتوفر وصف لهذه الشخصية. يمكنك استخدام اسمها مباشرة.";
 
-$("wikiLink").href = selectedCharacter.url;
+$("wikiLink").href = item.url;
 
-} catch (error) {
-
-selectedCharacter = {
-name: title,
-description: "",
-url: `https://${language}.wikipedia.org/`
-};
-
-$("characterDescription").textContent =
-"تعذر جلب التفاصيل. يمكنك استخدام اسم الشخصية مباشرة.";
-
-$("wikiLink").href = selectedCharacter.url;
-
+if (item.image) {
+$("characterImage").src = item.image;
+$("characterImage").classList.remove("hidden");
+} else {
+$("characterImage").classList.add("hidden");
 }
 
 }
@@ -492,7 +537,8 @@ if (!selectedCharacter) return;
 const details = selectedCharacter.description.slice(0, 400);
 
 $("prompt").value =
-`Detailed professional artwork of ${selectedCharacter.name}. ` +
+`Detailed professional artwork of ${selectedCharacter.name}` +
+`${selectedCharacter.series ? " from " + selectedCharacter.series : ""}. ` +
 `${details} ` +
 `Keep the recognizable original appearance, hairstyle, clothing and colors. ` +
 `Detailed face, accurate anatomy.`;
@@ -508,20 +554,12 @@ $("prompt").focus();
 
 function buildImageUrl(fullPrompt, width, height, seed) {
 
-const key = $("apiKey").value.trim();
 const enc = encodeURIComponent(fullPrompt);
 
-const params =
-`width=${width}&height=${height}&seed=${seed}` +
+return `https://image.pollinations.ai/prompt/${enc}` +
+`?width=${width}&height=${height}&seed=${seed}` +
 `&model=flux&nologo=true` +
 `&negative_prompt=${encodeURIComponent(NEGATIVE_PROMPT)}`;
-
-// مع المفتاح: الواجهة الجديدة (حدود أوسع). بدونه: الواجهة المجانية القديمة
-if (key) {
-return `https://gen.pollinations.ai/image/${enc}?${params}&key=${encodeURIComponent(key)}`;
-}
-
-return `https://image.pollinations.ai/prompt/${enc}?${params}`;
 
 }
 
@@ -685,7 +723,7 @@ $("errorState").classList.remove("hidden");
 $("errorMessage").textContent =
 lastError && lastError.name === "AbortError"
 ? "انتهت مهلة الانتظار. جرب دقة أقل أو حاول لاحقاً."
-: "تعذر توليد الصورة. الخدمة مشغولة أو تتطلب مفتاحاً. جرب لاحقاً أو أضف مفتاح Pollinations.";
+: "تعذر توليد الصورة. الخدمة المجانية مشغولة حالياً. حاول مرة أخرى بعد قليل.";
 
 return;
 
