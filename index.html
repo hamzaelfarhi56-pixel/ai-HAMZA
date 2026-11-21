@@ -7,22 +7,25 @@
 <title>Creative Studio AI Ultimate</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
 <style>
 *{box-sizing:border-box}
 body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
-.glass{background:rgba(20,27,47,.85);border:1px solid #29334c}
+.glass{background:rgba(20,27,47,.88);border:1px solid #29334c}
 .field{width:100%;background:#0b1020;border:1px solid #29334c;border-radius:12px;padding:12px;color:white;outline:none}
 .field:focus{border-color:#818cf8}
 .btn{border-radius:12px;padding:11px 16px;font-weight:700;transition:.2s}
 .primary{background:linear-gradient(110deg,#6366f1,#9333ea)}
 .primary:hover{filter:brightness(1.15)}
-.style.active{border-color:#818cf8;background:#312e81;color:white}
+button:disabled{opacity:.55;cursor:not-allowed}
 .style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px}
-.spinner{width:38px;height:38px;border:4px solid #333b59;border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite}
+.style.active{border-color:#818cf8;background:#312e81;color:white}
+.spinner{width:42px;height:42px;border:4px solid #333b59;border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .card{background:#111a2d;border:1px solid #29334c;border-radius:14px;overflow:hidden}
 .card img{width:100%;height:160px;object-fit:cover}
 .hidden{display:none!important}
+#resultImage{max-width:100%;max-height:650px;object-fit:contain}
 </style>
 </head>
 
@@ -45,64 +48,103 @@ body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
 
 <div class="mb-7">
 <h2 class="text-3xl font-black mb-2">أطلق العنان لخيالك 🚀</h2>
-<p class="text-slate-400 text-sm">ابحث عن الشخصيات المشهورة، اكتشف تفاصيلها، وحوّل أفكارك إلى صور.</p>
+<p class="text-slate-400 text-sm">
+ابحث عن الشخصيات المشهورة واكتشف تفاصيلها وحوّل أفكارك إلى صور.
+</p>
 </div>
 
 <div class="grid lg:grid-cols-12 gap-5">
 
-<!-- SETTINGS -->
+<!-- لوحة التحكم -->
 <section class="lg:col-span-5 glass rounded-2xl p-5 space-y-5">
 
 <div>
-<h3 class="font-bold text-indigo-300 mb-3">🔎 البحث الذكي عن الشخصيات</h3>
+<h3 class="font-bold text-indigo-300 mb-3">🔎 البحث عن الشخصيات</h3>
+
 <div class="flex gap-2">
-<input id="characterSearch" class="field" placeholder="مثال: Naruto, Luffy, Goku...">
-<button id="searchBtn" class="btn primary whitespace-nowrap" onclick="searchCharacter()">بحث</button>
+<input id="characterSearch" class="field"
+placeholder="Naruto, Luffy, Goku...">
+<button id="searchBtn" class="btn primary whitespace-nowrap"
+onclick="searchCharacter()">بحث</button>
 </div>
-<div id="searchLoading" class="hidden text-sm text-indigo-300 mt-3 flex items-center gap-2">
+
+<div id="searchLoading" class="hidden text-sm text-indigo-300 mt-3 items-center gap-2">
 <div class="spinner"></div> جاري البحث...
 </div>
+
 <div id="characterResults" class="space-y-2 mt-3"></div>
 </div>
 
+<!-- معلومات الشخصية -->
 <div id="characterInfo" class="hidden card p-4">
 <h3 class="font-bold text-emerald-300 mb-2">معلومات الشخصية</h3>
 <h4 id="characterName" class="font-bold"></h4>
-<p id="characterDescription" class="text-sm text-slate-400 mt-2"></p>
-<a id="wikiLink" target="_blank" rel="noopener" class="text-xs text-indigo-300 inline-block mt-3">قراءة المزيد ↗</a>
-<button onclick="useCharacter()" class="btn primary w-full mt-4">استخدام الشخصية في الصورة</button>
+<p id="characterDescription" class="text-sm text-slate-400 mt-2 leading-7"></p>
+<a id="wikiLink" target="_blank" rel="noopener"
+class="text-xs text-indigo-300 inline-block mt-3">قراءة المزيد ↗</a>
+<button onclick="useCharacter()" class="btn primary w-full mt-4">
+استخدام الشخصية في الصورة
+</button>
 </div>
 
+<!-- الوصف -->
 <div>
 <label class="text-sm font-bold block mb-2">وصف الصورة</label>
-<textarea id="prompt" rows="4" class="field" placeholder="اكتب وصف الصورة التي تريد إنشاءها..."></textarea>
-<p class="text-xs text-slate-500 mt-2">يمكنك البحث عن شخصية أولاً أو كتابة وصفك بنفسك.</p>
+<textarea id="prompt" rows="4" class="field"
+placeholder="A warrior standing in a dramatic cinematic scene..."></textarea>
+<p class="text-xs text-slate-500 mt-2">
+اكتب وصفاً مفصلاً أو ابحث عن شخصية مشهورة.
+</p>
 </div>
 
+<!-- الأساليب الفنية -->
 <div>
 <label class="text-sm font-bold block mb-3">الأسلوب الفني</label>
 <div class="grid grid-cols-3 gap-2" id="styles">
-<button class="style active" data-style="cinematic photorealistic">🎬 واقعي</button>
-<button class="style" data-style="anime illustration">🎌 أنمي</button>
-<button class="style" data-style="3D animated character">🧊 3D</button>
-<button class="style" data-style="cyberpunk neon art">🌆 سايبربانك</button>
-<button class="style" data-style="fantasy digital art">🪄 خيالي</button>
-<button class="style" data-style="classic oil painting">🎨 زيتي</button>
-<button class="style" data-style="comic book illustration">💥 كوميكس</button>
-<button class="style" data-style="watercolor painting">🖌️ مائي</button>
-<button class="style" data-style="dark fantasy artwork">🌑 مظلم</button>
+
+<button class="style active" data-style="cinematic photorealistic">
+🎬 واقعي
+</button>
+<button class="style" data-style="anime illustration">
+🎌 أنمي
+</button>
+<button class="style" data-style="high quality 3D render">
+🧊 3D
+</button>
+<button class="style" data-style="cyberpunk neon artwork">
+🌆 سايبربانك
+</button>
+<button class="style" data-style="fantasy digital artwork">
+🪄 خيالي
+</button>
+<button class="style" data-style="classic oil painting">
+🎨 زيتي
+</button>
+<button class="style" data-style="comic book illustration">
+💥 كوميكس
+</button>
+<button class="style" data-style="watercolor painting">
+🖌️ مائي
+</button>
+<button class="style" data-style="dark fantasy artwork">
+🌑 مظلم
+</button>
+
 </div>
 </div>
 
+<!-- الجودة والأبعاد -->
 <div class="grid grid-cols-2 gap-3">
+
 <div>
-<label class="text-sm block mb-2">عرض الصورة</label>
+<label class="text-sm block mb-2">دقة الصورة</label>
 <select id="width" class="field">
-<option value="1024">1024px</option>
-<option value="768">768px</option>
-<option value="512">512px</option>
+<option value="1024">1024px - عالية</option>
+<option value="1280">1280px - مرتفعة</option>
+<option value="1536">1536px - فائقة</option>
 </select>
 </div>
+
 <div>
 <label class="text-sm block mb-2">نسبة الصورة</label>
 <select id="ratio" class="field">
@@ -112,69 +154,101 @@ body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
 <option value="1.778">عريض 16:9</option>
 </select>
 </div>
+
 </div>
 
-<div>
-<label class="text-sm block mb-2">مفتاح الوصول المجاني (إن توفر)</label>
-<input id="apiKey" type="password" class="field" placeholder="Pollinations API Key">
-<p class="text-xs text-slate-500 mt-2">يُستخدم مفتاحك الشخصي فقط. لا تضع مفتاحاً سرياً في نسخة منشورة للعموم.</p>
-</div>
-
-<button id="generateBtn" onclick="generateImage()" class="btn primary w-full text-base">
+<!-- زر التوليد -->
+<button id="generateBtn" onclick="generateImage()"
+class="btn primary w-full text-base">
 ✨ توليد الصورة الآن
 </button>
 
+<p class="text-xs text-slate-500 text-center">
+لا تحتاج إلى إدخال مفتاح وصول. يعتمد التوليد على توفر الخدمة العامة.
+</p>
+
 </section>
 
-<!-- RESULTS -->
+<!-- النتائج -->
 <section class="lg:col-span-7 space-y-5">
 
 <div class="glass rounded-2xl p-5 min-h-[450px] flex flex-col items-center justify-center text-center">
 
+<!-- البداية -->
 <div id="emptyState">
 <div class="text-7xl mb-5">🎨</div>
 <h3 class="font-bold text-xl">مختبر الإبداع</h3>
-<p class="text-sm text-slate-500 mt-2">ستظهر صورتك هنا بعد انتهاء التوليد.</p>
+<p class="text-sm text-slate-500 mt-2">
+ستظهر صورتك هنا بعد انتهاء التوليد.
+</p>
 </div>
 
-<div id="loadingState" class="hidden flex flex-col items-center gap-4">
-<div class="spinner" style="width:60px;height:60px"></div>
-<h3 class="font-bold text-indigo-300">جاري إنشاء تحفتك الفنية...</h3>
-<p class="text-xs text-slate-500">قد يستغرق الأمر بعض الوقت حسب توفر الخدمة.</p>
+<!-- التحميل -->
+<div id="loadingState" class="hidden flex-col items-center gap-4">
+<div class="spinner" style="width:65px;height:65px"></div>
+<h3 class="font-bold text-indigo-300">
+جاري إنشاء تحفتك الفنية...
+</h3>
+<p id="loadingMessage" class="text-xs text-slate-500">
+يرجى الانتظار حتى اكتمال الصورة.
+</p>
 </div>
 
+<!-- الأخطاء -->
 <div id="errorState" class="hidden text-red-400 p-5">
 <div class="text-4xl mb-3">⚠️</div>
 <p id="errorMessage"></p>
-<button onclick="generateImage()" class="btn primary mt-4">إعادة المحاولة</button>
+<button onclick="generateImage()" class="btn primary mt-4">
+إعادة المحاولة
+</button>
 </div>
 
+<!-- الصورة -->
 <div id="resultState" class="hidden w-full">
-<img id="resultImage" class="rounded-xl max-h-[500px] w-auto max-w-full mx-auto object-contain" alt="الصورة المولدة">
+
+<img id="resultImage" class="rounded-xl mx-auto"
+alt="الصورة المولدة">
+
 <div class="flex flex-wrap justify-center gap-3 mt-5">
-<button onclick="downloadImage()" class="btn bg-emerald-600">⬇️ تحميل الصورة</button>
-<button onclick="generateImage()" class="btn bg-indigo-600">🔄 إعادة التوليد</button>
+<button onclick="downloadImage()" class="btn bg-emerald-600">
+⬇️ تحميل الصورة
+</button>
+
+<button onclick="generateImage()" class="btn bg-indigo-600">
+🔄 توليد صورة أخرى
+</button>
 </div>
+
 </div>
 </div>
 
+<!-- المعرض -->
 <div class="glass rounded-2xl p-5">
+
 <div class="flex justify-between items-center mb-4">
 <h3 class="font-bold">🖼️ معرض إبداعاتك</h3>
-<button onclick="clearGallery()" class="text-xs text-red-400">مسح المعرض</button>
-</div>
-<div id="gallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-<p id="galleryEmpty" class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>
-</div>
+<button onclick="clearGallery()" class="text-xs text-red-400">
+مسح المعرض
+</button>
 </div>
 
+<div id="gallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+<p class="text-xs text-slate-500 col-span-full text-center py-5">
+لا توجد صور بعد.
+</p>
+</div>
+
+</div>
+
+<!-- نصائح -->
 <div class="glass rounded-2xl p-4 text-xs text-slate-400">
-<h3 class="text-white font-bold mb-2">💡 نصائح للحصول على نتائج أفضل</h3>
+<h3 class="text-white font-bold mb-2">💡 نصائح لتحسين جودة الصور</h3>
 <ul class="list-disc pr-5 space-y-1">
-<li>اكتب وصفاً دقيقاً للصورة.</li>
-<li>حدد وضعية الشخصية والخلفية والإضاءة.</li>
-<li>ابحث عن الاسم الأصلي للشخصية لتسهيل التعرف عليها.</li>
-<li>اختر أسلوباً فنياً مناسباً.</li>
+<li>اكتب وصفاً دقيقاً باللغة الإنجليزية عند الإمكان.</li>
+<li>حدد ملامح الوجه والملابس والألوان.</li>
+<li>حدد زاوية التصوير والإضاءة والخلفية.</li>
+<li>استخدم دقة 1280 أو 1536 إذا كانت الخدمة تدعمها.</li>
+<li>اختر الأسلوب الفني المناسب للصورة.</li>
 </ul>
 </div>
 
@@ -184,268 +258,467 @@ body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
 
 <footer class="text-center text-xs text-slate-600 py-7">
 Creative Studio AI Ultimate © 2026
-<br>Powered by Wikipedia and Pollinations AI
+<br>Character Search: Wikipedia
+<br>Image Generation: Pollinations Legacy
 </footer>
 
 <script>
+
+// ======================================
+// المتغيرات
+// ======================================
+
 let selectedStyle = "cinematic photorealistic";
 let selectedCharacter = null;
 let currentImage = null;
 let gallery = [];
+let isGenerating = false;
+let requestNumber = 0;
 
 const $ = id => document.getElementById(id);
 
+
+// ======================================
 // اختيار الأسلوب
-document.querySelectorAll(".style").forEach(button=>{
-button.addEventListener("click",()=>{
-document.querySelectorAll(".style").forEach(b=>b.classList.remove("active"));
+// ======================================
+
+document.querySelectorAll(".style").forEach(button => {
+
+button.addEventListener("click", () => {
+
+document.querySelectorAll(".style").forEach(b =>
+b.classList.remove("active")
+);
+
 button.classList.add("active");
-selectedStyle=button.dataset.style;
+selectedStyle = button.dataset.style;
+
 });
+
 });
 
-// البحث عن الشخصيات في ويكيبيديا
-async function searchCharacter(){
-const query=$("characterSearch").value.trim();
-if(!query) return alert("اكتب اسم الشخصية أولاً");
 
-$("searchLoading").classList.remove("hidden");
-$("characterResults").innerHTML="";
-$("characterInfo").classList.add("hidden");
-selectedCharacter=null;
+// ======================================
+// البحث عن الشخصيات
+// ======================================
 
-try{
-let data=await wikiSearch("en",query);
+async function searchCharacter() {
 
-if(!data.pages || !data.pages.length){
-data=await wikiSearch("ar",query);
-}
+const query = $("characterSearch").value.trim();
 
-if(!data.pages || !data.pages.length){
-$("characterResults").innerHTML=
-'<p class="text-sm text-amber-400">لم نعثر على نتائج. جرب الاسم باللغة الإنجليزية.</p>';
+if (!query) {
+alert("اكتب اسم الشخصية أولاً.");
 return;
 }
 
-data.pages.slice(0,6).forEach(page=>{
-const item=document.createElement("button");
-item.className="card w-full p-3 text-right text-sm hover:border-indigo-500";
-item.textContent=page.title+(page.description?" — "+page.description:"");
-item.onclick=()=>loadCharacter(page.title);
+$("searchLoading").classList.remove("hidden");
+$("searchLoading").classList.add("flex");
+$("characterResults").innerHTML = "";
+$("characterInfo").classList.add("hidden");
+$("searchBtn").disabled = true;
+
+try {
+
+let data = await wikiSearch("en", query);
+let language = "en";
+
+if (!data.query?.search?.length) {
+data = await wikiSearch("ar", query);
+language = "ar";
+}
+
+const pages = data.query?.search || [];
+
+if (!pages.length) {
+
+$("characterResults").textContent =
+"لم نعثر على نتائج. جرب الاسم باللغة الإنجليزية.";
+
+return;
+}
+
+pages.slice(0, 8).forEach(page => {
+
+const item = document.createElement("button");
+
+item.className =
+"card w-full p-3 text-right text-sm hover:border-indigo-500";
+
+item.textContent = page.title;
+
+item.onclick = () => loadCharacter(page.title, language);
+
 $("characterResults").appendChild(item);
+
 });
 
-}catch(error){
-$("characterResults").innerHTML=
-'<p class="text-sm text-red-400">تعذر الاتصال بويكيبيديا. تحقق من الإنترنت وحاول مجدداً.</p>';
-}
-finally{
+} catch (error) {
+
+$("characterResults").textContent =
+"تعذر الاتصال بويكيبيديا. تحقق من الإنترنت.";
+
+} finally {
+
 $("searchLoading").classList.add("hidden");
-}
+$("searchLoading").classList.remove("flex");
+$("searchBtn").disabled = false;
+
 }
 
-async function wikiSearch(language,query){
-const url=`https://${language}.wikipedia.org/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=8`;
-const response=await fetch(url);
-if(!response.ok) throw new Error("Search failed");
+}
+
+
+// ======================================
+// واجهة ويكيبيديا
+// ======================================
+
+async function wikiSearch(language, query) {
+
+const url =
+`https://${language}.wikipedia.org/w/api.php` +
+`?action=query&list=search&srsearch=${encodeURIComponent(query)}` +
+`&srlimit=8&format=json&origin=*`;
+
+const response = await fetch(url);
+
+if (!response.ok) throw new Error("Search failed");
+
 return response.json();
+
 }
 
-// جلب معلومات الشخصية
-async function loadCharacter(title){
-try{
-$("characterName").textContent=title;
-$("characterDescription").textContent="جاري جلب المعلومات...";
+
+// ======================================
+// معلومات الشخصية
+// ======================================
+
+async function loadCharacter(title, language = "en") {
+
 $("characterInfo").classList.remove("hidden");
+$("characterName").textContent = title;
+$("characterDescription").textContent = "جاري جلب المعلومات...";
 
-const lang=title.match(/[\u0600-\u06FF]/)?"ar":"en";
-const url=`https://${lang}.wikipedia.org/w/rest.php/v1/page/${encodeURIComponent(title)}`;
+try {
 
-const response=await fetch(url);
-if(!response.ok) throw new Error("Page unavailable");
+const url =
+`https://${language}.wikipedia.org/w/api.php` +
+`?action=query&prop=extracts&exintro=1&explaintext=1` +
+`&titles=${encodeURIComponent(title)}&format=json&origin=*`;
 
-const page=await response.json();
+const response = await fetch(url);
 
-selectedCharacter={
-name:title,
-description:page.description||"",
-extract:page.extract||"",
-url:`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`
+if (!response.ok) throw new Error("Page unavailable");
+
+const data = await response.json();
+const page = Object.values(data.query.pages)[0];
+
+selectedCharacter = {
+name: title,
+description: page.extract || "",
+url: `https://${language}.wikipedia.org/wiki/${encodeURIComponent(title)}`
 };
 
-$("characterName").textContent=title;
-$("characterDescription").textContent=
-(page.description||"")+"\n"+(page.extract||"لم يتوفر ملخص لهذه الصفحة.");
-$("wikiLink").href=selectedCharacter.url;
+$("characterName").textContent = title;
 
-}catch(error){
-selectedCharacter={
-name:title,
-description:"",
-extract:"",
-url:"https://en.wikipedia.org"
+$("characterDescription").textContent =
+selectedCharacter.description.slice(0, 1400) ||
+"لم يتوفر وصف لهذه الشخصية.";
+
+$("wikiLink").href = selectedCharacter.url;
+
+} catch (error) {
+
+selectedCharacter = {
+name: title,
+description: "",
+url: `https://${language}.wikipedia.org/`
 };
-$("characterDescription").textContent=
-"تعذر جلب تفاصيل الصفحة. يمكنك استخدام اسم الشخصية مع وصفك اليدوي.";
-$("wikiLink").href=selectedCharacter.url;
+
+$("characterDescription").textContent =
+"تعذر جلب التفاصيل. يمكنك استخدام اسم الشخصية مباشرة.";
+
+$("wikiLink").href = selectedCharacter.url;
+
 }
+
 }
 
-// تحويل معلومات الشخصية إلى وصف
-function useCharacter(){
-if(!selectedCharacter)return;
 
-const details=[
-selectedCharacter.description,
-selectedCharacter.extract
-].filter(Boolean).join(". ").slice(0,1000);
+// ======================================
+// استخدام الشخصية
+// ======================================
 
-$("prompt").value=
-`Create an artistic image of ${selectedCharacter.name}. `+
-`Character information: ${details}. `+
-`Preserve recognizable character features, costume, hairstyle and visual identity. `+
-`High quality detailed composition.`;
+function useCharacter() {
+
+if (!selectedCharacter) return;
+
+const details = selectedCharacter.description.slice(0, 900);
+
+$("prompt").value =
+`Create an extremely detailed professional artwork of ${selectedCharacter.name}. ` +
+`Character information: ${details}. ` +
+`Preserve the recognizable original appearance, hairstyle, clothing, colors and distinctive features. ` +
+`Beautiful composition, accurate anatomy, detailed face, expressive eyes, professional lighting.`;
 
 $("prompt").focus();
+
 }
 
-// توليد الصورة
-async function generateImage(){
-const prompt=$("prompt").value.trim();
-if(!prompt)return alert("اكتب وصف الصورة أولاً.");
 
-const key=$("apiKey").value.trim();
+// ======================================
+// توليد الصور
+// ======================================
 
-if(!key){
-return alert(
-"أدخل مفتاح Pollinations المجاني إن كان متاحاً لحسابك. يمكنك الحصول عليه من enter.pollinations.ai."
-);
+async function generateImage() {
+
+// منع طلبين متزامنين فقط
+// لا توجد فترة انتظار إجبارية بين الصور
+
+if (isGenerating) return;
+
+const prompt = $("prompt").value.trim();
+
+if (!prompt) {
+alert("اكتب وصف الصورة أولاً.");
+return;
 }
 
+isGenerating = true;
+const thisRequest = ++requestNumber;
+
+$("generateBtn").disabled = true;
 $("emptyState").classList.add("hidden");
 $("resultState").classList.add("hidden");
 $("errorState").classList.add("hidden");
+
 $("loadingState").classList.remove("hidden");
-$("generateBtn").disabled=true;
+$("loadingState").classList.add("flex");
 
-try{
-const width=Number($("width").value);
-const ratio=Number($("ratio").value);
-const height=Math.round(width/ratio);
+$("loadingMessage").textContent =
+"جاري إنشاء الصورة بأفضل وصف ممكن...";
 
-const fullPrompt=
-`${prompt}, ${selectedStyle}, masterpiece, highly detailed, professional composition, high quality`;
+const width = Number($("width").value);
+const ratio = Number($("ratio").value);
+const height = Math.round(width / ratio);
 
-const url=
-`https://gen.pollinations.ai/image/${encodeURIComponent(fullPrompt)}`+
-`?model=black-forest-labs/flux.1-schnell`+
-`&width=${width}&height=${height}&nologo=true`;
+// تحسين وصف التوليد
+const qualityPrompt =
+`${prompt}, ${selectedStyle}, ` +
+`masterpiece, ultra detailed, high quality, ` +
+`professional artwork, sharp focus, detailed textures, ` +
+`beautiful composition, excellent lighting, ` +
+`accurate anatomy, rich colors, 8k quality`;
 
-const response=await fetch(url,{
-headers:{
-"Authorization":"Bearer "+key
+const seed = Math.floor(Math.random() * 999999999);
+
+// نقطة التوليد القديمة دون مفتاح
+const imageUrl =
+"https://image.pollinations.ai/prompt/" +
+encodeURIComponent(qualityPrompt) +
+`?width=${width}` +
+`&height=${height}` +
+`&seed=${seed}` +
+`&nologo=true`;
+
+// تحميل الصورة
+const img = new Image();
+
+let completed = false;
+
+const timeout = setTimeout(() => {
+
+if (completed || thisRequest !== requestNumber) return;
+
+completed = true;
+
+$("errorState").classList.remove("hidden");
+$("errorMessage").textContent =
+"انتهت مهلة الانتظار. قد تكون خدمة توليد الصور غير متاحة حالياً.";
+
+finishGeneration();
+
+}, 180000);
+
+function finishGeneration() {
+
+clearTimeout(timeout);
+
+isGenerating = false;
+$("generateBtn").disabled = false;
+
+$("loadingState").classList.add("hidden");
+$("loadingState").classList.remove("flex");
+
 }
-});
 
-if(!response.ok){
-throw new Error(
-response.status===401?"مفتاح الوصول غير صحيح أو غير مصرح به.":
-response.status===429?"تم تجاوز حد الاستخدام. حاول لاحقاً.":
-"تعذر توليد الصورة. رمز الخطأ: "+response.status
-);
-}
+img.onload = function() {
 
-const blob=await response.blob();
+if (completed || thisRequest !== requestNumber) return;
 
-if(!blob.type.startsWith("image/")){
-throw new Error("لم يرجع مزود الخدمة ملف صورة صالحاً.");
-}
+completed = true;
 
-currentImage=URL.createObjectURL(blob);
+currentImage = imageUrl;
 
-$("resultImage").src=currentImage;
+$("resultImage").src = imageUrl;
 $("resultState").classList.remove("hidden");
 
 gallery.unshift({
-url:currentImage,
-prompt:prompt
+url: imageUrl,
+prompt: prompt,
+seed: seed
 });
 
 renderGallery();
 
-}catch(error){
+finishGeneration();
+
+};
+
+img.onerror = function() {
+
+if (completed || thisRequest !== requestNumber) return;
+
+completed = true;
+
 $("errorState").classList.remove("hidden");
-$("errorMessage").textContent=error.message||
-"حدث خطأ أثناء الاتصال بخدمة الصور.";
-}
-finally{
-$("loadingState").classList.add("hidden");
-$("generateBtn").disabled=false;
-}
+
+$("errorMessage").textContent =
+"تعذر توليد الصورة. قد تكون خدمة Pollinations القديمة متوقفة أو تتطلب مصادقة. حاول لاحقاً.";
+
+finishGeneration();
+
+};
+
+img.referrerPolicy = "no-referrer";
+img.src = imageUrl;
+
 }
 
-// عرض المعرض
-function renderGallery(){
-$("gallery").innerHTML="";
 
-if(!gallery.length){
-$("gallery").innerHTML=
+// ======================================
+// معرض الصور
+// ======================================
+
+function renderGallery() {
+
+$("gallery").innerHTML = "";
+
+if (!gallery.length) {
+
+$("gallery").innerHTML =
 '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>';
+
 return;
+
 }
 
-gallery.forEach((item,index)=>{
-const card=document.createElement("div");
-card.className="card";
+gallery.forEach((item, index) => {
 
-const img=document.createElement("img");
-img.src=item.url;
-img.alt=item.prompt;
+const card = document.createElement("div");
+card.className = "card";
 
-const content=document.createElement("div");
-content.className="p-2";
+const img = document.createElement("img");
+img.src = item.url;
+img.alt = item.prompt;
+img.loading = "lazy";
 
-const text=document.createElement("p");
-text.className="text-xs text-slate-400 truncate";
-text.textContent=item.prompt;
+const content = document.createElement("div");
+content.className = "p-2";
 
-const button=document.createElement("button");
-button.className="text-xs text-indigo-300 mt-2";
-button.textContent="عرض الصورة";
-button.onclick=()=>{
-currentImage=item.url;
-$("resultImage").src=item.url;
+const text = document.createElement("p");
+text.className = "text-xs text-slate-400 truncate";
+text.textContent = item.prompt;
+
+const button = document.createElement("button");
+button.className = "text-xs text-indigo-300 mt-2";
+button.textContent = "عرض الصورة";
+
+button.onclick = () => {
+
+currentImage = item.url;
+
+$("resultImage").src = item.url;
 $("emptyState").classList.add("hidden");
 $("errorState").classList.add("hidden");
 $("resultState").classList.remove("hidden");
+
 };
 
-content.append(text,button);
-card.append(img,content);
+content.append(text, button);
+card.append(img, content);
+
 $("gallery").appendChild(card);
+
 });
+
 }
 
-// تحميل الصورة
-async function downloadImage(){
-if(!currentImage)return;
 
-const link=document.createElement("a");
-link.href=currentImage;
-link.download="creative-studio-"+Date.now()+".png";
+// ======================================
+// تحميل الصورة
+// ======================================
+
+async function downloadImage() {
+
+if (!currentImage) return;
+
+try {
+
+const response = await fetch(currentImage);
+
+if (!response.ok) throw new Error("Download failed");
+
+const blob = await response.blob();
+
+const blobUrl = URL.createObjectURL(blob);
+
+const link = document.createElement("a");
+
+link.href = blobUrl;
+link.download = "creative-studio-" + Date.now() + ".jpg";
+
 document.body.appendChild(link);
 link.click();
 link.remove();
+
+setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+
+} catch (error) {
+
+window.open(currentImage, "_blank", "noopener");
+
 }
 
+}
+
+
+// ======================================
 // مسح المعرض
-function clearGallery(){
-if(!confirm("هل تريد مسح جميع الصور من المعرض؟"))return;
+// ======================================
 
-gallery.forEach(item=>URL.revokeObjectURL(item.url));
-gallery=[];
+function clearGallery() {
+
+if (!confirm("هل تريد مسح جميع الصور من المعرض؟")) return;
+
+gallery = [];
+
 renderGallery();
+
 }
+
+
+// ======================================
+// البحث باستخدام Enter
+// ======================================
+
+$("characterSearch").addEventListener("keydown", event => {
+
+if (event.key === "Enter") {
+searchCharacter();
+}
+
+});
+
 </script>
 
 </body>
