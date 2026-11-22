@@ -1,0 +1,6 @@
+{
+  "name": "KinoFrame Studio",
+  "description": "Cinematic AI video and image generation studio with storyboard planning, character consistency, timeline scene builder, and AI creative assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

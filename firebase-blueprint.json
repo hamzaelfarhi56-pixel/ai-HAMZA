@@ -1,0 +1,450 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Private user account, studio preferences, and generation credits wallet.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "credits": {
+          "type": "integer"
+        },
+        "totalGenerated": {
+          "type": "integer"
+        },
+        "defaultAspectRatio": {
+          "type": "string",
+          "enum": ["16:9", "9:16", "1:1", "4:3"]
+        },
+        "defaultStyle": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "displayName", "credits", "totalGenerated", "createdAt", "updatedAt"]
+    },
+    "Project": {
+      "title": "Studio Project",
+      "description": "A film or visual creation project containing assets, characters, scenes, and timeline edits.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "synopsis": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "genre": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "visualStyle": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "aspectRatio": {
+          "type": "string",
+          "enum": ["16:9", "9:16", "1:1", "4:3"]
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "sceneCount": {
+          "type": "integer"
+        },
+        "assetCount": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "ownerId", "title", "visualStyle", "aspectRatio", "sceneCount", "assetCount", "createdAt", "updatedAt"]
+    },
+    "CharacterEntity": {
+      "title": "Character or Object Consistency Entity",
+      "description": "Reusable character, prop, or location profile used to keep visual consistency across scenes.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "entityType": {
+          "type": "string",
+          "enum": ["character", "object", "location"]
+        },
+        "appearancePrompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "referenceImageUrl": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "tags": {
+          "type": "array"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "projectId", "ownerId", "name", "entityType", "appearancePrompt", "createdAt", "updatedAt"]
+    },
+    "MediaAsset": {
+      "title": "Project Media Asset",
+      "description": "Uploaded or AI-generated image or video asset stored inside a project.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "assetType": {
+          "type": "string",
+          "enum": ["image", "video"]
+        },
+        "source": {
+          "type": "string",
+          "enum": ["upload", "generated"]
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "mimeType": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "generationMode": {
+          "type": "string",
+          "enum": ["text-to-video", "image-to-video", "keyframe-motion", "video-edit", "text-to-image", "image-edit", "upload"]
+        },
+        "aspectRatio": {
+          "type": "string",
+          "enum": ["16:9", "9:16", "1:1", "4:3", "3:4"]
+        },
+        "duration": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "resolution": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "cameraMovement": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "visualStyle": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "characterIds": {
+          "type": "array"
+        },
+        "interactionId": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Generating", "Processing", "Completed", "Failed"]
+        },
+        "errorMessage": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "creditCost": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "projectId", "ownerId", "title", "assetType", "source", "generationMode", "status", "creditCost", "createdAt", "updatedAt"]
+    },
+    "StoryboardScene": {
+      "title": "Storyboard Scene",
+      "description": "Individual scene card inside a project storyboard with its own prompt, characters, and visual media.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "orderIndex": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1500
+        },
+        "mediaUrl": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["image", "video", "none"]
+        },
+        "assetId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "durationSeconds": {
+          "type": "integer"
+        },
+        "cameraMovement": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "visualStyle": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "characterIds": {
+          "type": "array"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Draft", "Generating", "Processing", "Completed", "Failed"]
+        },
+        "errorMessage": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "projectId", "ownerId", "orderIndex", "title", "prompt", "mediaType", "durationSeconds", "status", "createdAt", "updatedAt"]
+    },
+    "TimelineClip": {
+      "title": "Timeline Clip",
+      "description": "Ordered, trimmed clip on the Scene Builder timeline.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sceneId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "assetId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "mediaUrl": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["image", "video"]
+        },
+        "orderIndex": {
+          "type": "integer"
+        },
+        "sourceDuration": {
+          "type": "number"
+        },
+        "trimStart": {
+          "type": "number"
+        },
+        "trimEnd": {
+          "type": "number"
+        },
+        "transition": {
+          "type": "string",
+          "enum": ["cut", "crossfade", "dip-to-black"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "projectId", "ownerId", "title", "mediaUrl", "mediaType", "orderIndex", "sourceDuration", "trimStart", "trimEnd", "transition", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user profile and credit wallet."
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "User-owned studio projects."
+    },
+    "/projects/{projectId}/characters/{characterId}": {
+      "schema": { "$ref": "#/entities/CharacterEntity" },
+      "description": "Reusable characters, objects, and locations for cross-scene consistency."
+    },
+    "/projects/{projectId}/assets/{assetId}": {
+      "schema": { "$ref": "#/entities/MediaAsset" },
+      "description": "Uploaded and AI-generated images and videos belonging to a project."
+    },
+    "/projects/{projectId}/scenes/{sceneId}": {
+      "schema": { "$ref": "#/entities/StoryboardScene" },
+      "description": "Storyboard scenes inside a project."
+    },
+    "/projects/{projectId}/timeline/{clipId}": {
+      "schema": { "$ref": "#/entities/TimelineClip" },
+      "description": "Ordered and trimmed clips on the Scene Builder timeline."
+    }
+  }
+}

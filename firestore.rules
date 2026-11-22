@@ -1,0 +1,345 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return isVerified() && request.auth.uid == uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isStringBounded(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isOptionalStringArray(arr, maxItems) {
+      return arr is list && arr.size() <= maxItems && (arr.size() == 0 || arr[0] is string);
+    }
+
+    function isProjectOwner(projectId) {
+      return isVerified()
+        && exists(/databases/$(database)/documents/projects/$(projectId))
+        && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+    }
+
+    // Validation Blueprints
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'credits', 'totalGenerated', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'credits', 'totalGenerated', 'defaultAspectRatio', 'defaultStyle', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == userId
+        && data.uid == request.auth.uid
+        && isStringBounded(data.email, 3, 254)
+        && isStringBounded(data.displayName, 1, 100)
+        && (!('photoURL' in data) || isStringBounded(data.photoURL, 0, 1024))
+        && data.credits is int && data.credits >= 0 && data.credits <= 10000
+        && data.totalGenerated is int && data.totalGenerated >= 0 && data.totalGenerated <= 1000000
+        && (!('defaultAspectRatio' in data) || data.defaultAspectRatio in ['16:9', '9:16', '1:1', '4:3'])
+        && (!('defaultStyle' in data) || isStringBounded(data.defaultStyle, 0, 80))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProject(data, projectId) {
+      return data.keys().hasAll(['id', 'ownerId', 'title', 'visualStyle', 'aspectRatio', 'sceneCount', 'assetCount', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'ownerId', 'title', 'synopsis', 'genre', 'visualStyle', 'aspectRatio', 'thumbnailUrl', 'sceneCount', 'assetCount', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.id == projectId
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && isStringBounded(data.title, 1, 120)
+        && (!('synopsis' in data) || isStringBounded(data.synopsis, 0, 2000))
+        && (!('genre' in data) || isStringBounded(data.genre, 0, 60))
+        && isStringBounded(data.visualStyle, 1, 80)
+        && data.aspectRatio in ['16:9', '9:16', '1:1', '4:3']
+        && (!('thumbnailUrl' in data) || isStringBounded(data.thumbnailUrl, 0, 1024))
+        && data.sceneCount is int && data.sceneCount >= 0 && data.sceneCount <= 500
+        && data.assetCount is int && data.assetCount >= 0 && data.assetCount <= 2000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCharacter(data, projectId, characterId) {
+      return data.keys().hasAll(['id', 'projectId', 'ownerId', 'name', 'entityType', 'appearancePrompt', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'projectId', 'ownerId', 'name', 'entityType', 'appearancePrompt', 'referenceImageUrl', 'tags', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.id == characterId
+        && isValidId(data.projectId)
+        && data.projectId == projectId
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && isStringBounded(data.name, 1, 80)
+        && data.entityType in ['character', 'object', 'location']
+        && isStringBounded(data.appearancePrompt, 1, 1500)
+        && (!('referenceImageUrl' in data) || isStringBounded(data.referenceImageUrl, 0, 1024))
+        && (!('tags' in data) || isOptionalStringArray(data.tags, 6))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAsset(data, projectId, assetId) {
+      return data.keys().hasAll(['id', 'projectId', 'ownerId', 'title', 'assetType', 'source', 'generationMode', 'status', 'creditCost', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'projectId', 'ownerId', 'title', 'assetType', 'source', 'url', 'mimeType', 'prompt', 'generationMode', 'aspectRatio', 'duration', 'resolution', 'cameraMovement', 'visualStyle', 'characterIds', 'interactionId', 'status', 'errorMessage', 'creditCost', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.id == assetId
+        && isValidId(data.projectId)
+        && data.projectId == projectId
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && isStringBounded(data.title, 1, 140)
+        && data.assetType in ['image', 'video']
+        && data.source in ['upload', 'generated']
+        && (!('url' in data) || isStringBounded(data.url, 0, 1024))
+        && (!('mimeType' in data) || isStringBounded(data.mimeType, 0, 100))
+        && (!('prompt' in data) || isStringBounded(data.prompt, 0, 3000))
+        && data.generationMode in ['text-to-video', 'image-to-video', 'keyframe-motion', 'video-edit', 'text-to-image', 'image-edit', 'upload']
+        && (!('aspectRatio' in data) || data.aspectRatio in ['16:9', '9:16', '1:1', '4:3', '3:4'])
+        && (!('duration' in data) || isStringBounded(data.duration, 0, 16))
+        && (!('resolution' in data) || isStringBounded(data.resolution, 0, 16))
+        && (!('cameraMovement' in data) || isStringBounded(data.cameraMovement, 0, 80))
+        && (!('visualStyle' in data) || isStringBounded(data.visualStyle, 0, 80))
+        && (!('characterIds' in data) || isOptionalStringArray(data.characterIds, 6))
+        && (!('interactionId' in data) || isStringBounded(data.interactionId, 0, 256))
+        && data.status in ['Generating', 'Processing', 'Completed', 'Failed']
+        && (!('errorMessage' in data) || isStringBounded(data.errorMessage, 0, 1000))
+        && data.creditCost is int && data.creditCost >= 0 && data.creditCost <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidScene(data, projectId, sceneId) {
+      return data.keys().hasAll(['id', 'projectId', 'ownerId', 'orderIndex', 'title', 'prompt', 'mediaType', 'durationSeconds', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'projectId', 'ownerId', 'orderIndex', 'title', 'prompt', 'notes', 'mediaUrl', 'mediaType', 'assetId', 'durationSeconds', 'cameraMovement', 'visualStyle', 'characterIds', 'status', 'errorMessage', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.id == sceneId
+        && isValidId(data.projectId)
+        && data.projectId == projectId
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.orderIndex is int && data.orderIndex >= 0 && data.orderIndex <= 500
+        && isStringBounded(data.title, 1, 140)
+        && isStringBounded(data.prompt, 0, 3000)
+        && (!('notes' in data) || isStringBounded(data.notes, 0, 1500))
+        && (!('mediaUrl' in data) || isStringBounded(data.mediaUrl, 0, 1024))
+        && data.mediaType in ['image', 'video', 'none']
+        && (!('assetId' in data) || isStringBounded(data.assetId, 0, 128))
+        && data.durationSeconds is int && data.durationSeconds >= 1 && data.durationSeconds <= 60
+        && (!('cameraMovement' in data) || isStringBounded(data.cameraMovement, 0, 80))
+        && (!('visualStyle' in data) || isStringBounded(data.visualStyle, 0, 80))
+        && (!('characterIds' in data) || isOptionalStringArray(data.characterIds, 6))
+        && data.status in ['Draft', 'Generating', 'Processing', 'Completed', 'Failed']
+        && (!('errorMessage' in data) || isStringBounded(data.errorMessage, 0, 1000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTimelineClip(data, projectId, clipId) {
+      return data.keys().hasAll(['id', 'projectId', 'ownerId', 'title', 'mediaUrl', 'mediaType', 'orderIndex', 'sourceDuration', 'trimStart', 'trimEnd', 'transition', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'projectId', 'ownerId', 'sceneId', 'assetId', 'title', 'mediaUrl', 'mediaType', 'orderIndex', 'sourceDuration', 'trimStart', 'trimEnd', 'transition', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.id == clipId
+        && isValidId(data.projectId)
+        && data.projectId == projectId
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && (!('sceneId' in data) || isStringBounded(data.sceneId, 0, 128))
+        && (!('assetId' in data) || isStringBounded(data.assetId, 0, 128))
+        && isStringBounded(data.title, 1, 140)
+        && isStringBounded(data.mediaUrl, 1, 1024)
+        && data.mediaType in ['image', 'video']
+        && data.orderIndex is int && data.orderIndex >= 0 && data.orderIndex <= 500
+        && data.sourceDuration is number && data.sourceDuration > 0 && data.sourceDuration <= 120
+        && data.trimStart is number && data.trimStart >= 0 && data.trimStart < data.trimEnd
+        && data.trimEnd is number && data.trimEnd <= data.sourceDuration
+        && data.transition in ['cut', 'crossfade', 'dip-to-black']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // 1. User Profiles & Credits Wallet (Strict PII Isolation)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().credits == 250
+        && incoming().totalGenerated == 0
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().email == existing().email
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'defaultAspectRatio', 'defaultStyle', 'updatedAt'])
+          || (
+            incoming().diff(existing()).affectedKeys().hasOnly(['credits', 'totalGenerated', 'updatedAt'])
+            && incoming().credits >= 0
+            && incoming().credits <= existing().credits + 250
+          )
+        );
+    }
+
+    // 2. Studio Projects
+    match /projects/{projectId} {
+      allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+      allow get: if isValidId(projectId) && isVerified() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(projectId)
+        && isVerified()
+        && isValidProject(incoming(), projectId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(projectId)
+        && isVerified()
+        && existing().ownerId == request.auth.uid
+        && isValidProject(incoming(), projectId)
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'synopsis', 'genre', 'visualStyle', 'aspectRatio', 'thumbnailUrl', 'updatedAt'])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['sceneCount', 'assetCount', 'thumbnailUrl', 'updatedAt'])
+        );
+      allow delete: if isValidId(projectId) && isVerified() && existing().ownerId == request.auth.uid;
+
+      // 3. Character & Object Consistency Bible
+      match /characters/{characterId} {
+        allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+        allow get: if isValidId(projectId) && isValidId(characterId) && isProjectOwner(projectId);
+        allow create: if isValidId(projectId)
+          && isValidId(characterId)
+          && isVerified()
+          && isValidCharacter(incoming(), projectId, characterId)
+          && isProjectOwner(projectId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(projectId)
+          && isValidId(characterId)
+          && isVerified()
+          && isValidCharacter(incoming(), projectId, characterId)
+          && isProjectOwner(projectId)
+          && incoming().id == existing().id
+          && incoming().projectId == existing().projectId
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'entityType', 'appearancePrompt', 'referenceImageUrl', 'tags', 'updatedAt']);
+        allow delete: if isValidId(projectId) && isValidId(characterId) && isProjectOwner(projectId);
+      }
+
+      // 4. Project Media Assets (Images & Videos)
+      match /assets/{assetId} {
+        allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+        allow get: if isValidId(projectId) && isValidId(assetId) && isProjectOwner(projectId);
+        allow create: if isValidId(projectId)
+          && isValidId(assetId)
+          && isVerified()
+          && isValidAsset(incoming(), projectId, assetId)
+          && isProjectOwner(projectId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(projectId)
+          && isValidId(assetId)
+          && isVerified()
+          && isValidAsset(incoming(), projectId, assetId)
+          && isProjectOwner(projectId)
+          && incoming().id == existing().id
+          && incoming().projectId == existing().projectId
+          && incoming().ownerId == existing().ownerId
+          && incoming().creditCost == existing().creditCost
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && (
+            (
+              existing().status in ['Generating', 'Processing']
+              && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'url', 'mimeType', 'interactionId', 'errorMessage', 'updatedAt'])
+            )
+            || incoming().diff(existing()).affectedKeys().hasOnly(['title', 'updatedAt'])
+          );
+        allow delete: if isValidId(projectId) && isValidId(assetId) && isProjectOwner(projectId);
+      }
+
+      // 5. Storyboard Scenes
+      match /scenes/{sceneId} {
+        allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+        allow get: if isValidId(projectId) && isValidId(sceneId) && isProjectOwner(projectId);
+        allow create: if isValidId(projectId)
+          && isValidId(sceneId)
+          && isVerified()
+          && isValidScene(incoming(), projectId, sceneId)
+          && isProjectOwner(projectId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(projectId)
+          && isValidId(sceneId)
+          && isVerified()
+          && isValidScene(incoming(), projectId, sceneId)
+          && isProjectOwner(projectId)
+          && incoming().id == existing().id
+          && incoming().projectId == existing().projectId
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && (
+            incoming().diff(existing()).affectedKeys().hasOnly(['orderIndex', 'title', 'prompt', 'notes', 'durationSeconds', 'cameraMovement', 'visualStyle', 'characterIds', 'status', 'errorMessage', 'updatedAt'])
+            || incoming().diff(existing()).affectedKeys().hasOnly(['mediaUrl', 'mediaType', 'assetId', 'status', 'errorMessage', 'updatedAt'])
+          );
+        allow delete: if isValidId(projectId) && isValidId(sceneId) && isProjectOwner(projectId);
+      }
+
+      // 6. Scene Builder Timeline Clips
+      match /timeline/{clipId} {
+        allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+        allow get: if isValidId(projectId) && isValidId(clipId) && isProjectOwner(projectId);
+        allow create: if isValidId(projectId)
+          && isValidId(clipId)
+          && isVerified()
+          && isValidTimelineClip(incoming(), projectId, clipId)
+          && isProjectOwner(projectId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(projectId)
+          && isValidId(clipId)
+          && isVerified()
+          && isValidTimelineClip(incoming(), projectId, clipId)
+          && isProjectOwner(projectId)
+          && incoming().id == existing().id
+          && incoming().projectId == existing().projectId
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['orderIndex', 'trimStart', 'trimEnd', 'transition', 'title', 'updatedAt']);
+        allow delete: if isValidId(projectId) && isValidId(clipId) && isProjectOwner(projectId);
+      }
+    }
+  }
+}
