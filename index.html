@@ -3,11 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- سياسة أمان المحتوى: تحدد المصادر المسموح بها فقط. إن تعطل Puter فاحذف هذا الوسم أولاً للتشخيص -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; worker-src blob:; connect-src 'self' https://accounts.google.com https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://accounts.google.com https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script>
-// منع تضمين الصفحة داخل إطار موقع آخر (Clickjacking)
 if (window.top !== window.self) {
   document.documentElement.style.display = "none";
   try { window.top.location = window.self.location; } catch (e) {}
@@ -25,13 +23,13 @@ body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
 .glass{background:rgba(20,27,47,.88);border:1px solid #29334c}
 .field{width:100%;background:#0b1020;border:1px solid #29334c;border-radius:12px;padding:12px;color:white;outline:none}
 .field:focus{border-color:#818cf8}
-.btn{border-radius:12px;padding:10px 16px;font-weight:700;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn{border-radius:12px;padding:10px 16px;font-weight:700;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .primary{background:linear-gradient(110deg,#6366f1,#9333ea)}
 .primary:hover{filter:brightness(1.15)}
 .ghost{background:#10172a;border:1px solid #29334c}
 .ghost:hover{border-color:#818cf8}
 button:disabled{opacity:.55;cursor:not-allowed}
-.style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600}
+.style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600;cursor:pointer}
 .style.active{border-color:#818cf8;background:#312e81;color:white}
 .spinner{width:42px;height:42px;border:4px solid #333b59;border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -41,7 +39,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #resultImage{max-width:100%;max-height:650px;object-fit:contain}
 .ic{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .ic-lg{width:3.5rem;height:3.5rem}
-.chip{border:1px solid #3b4670;background:#141c33;border-radius:999px;padding:4px 12px;font-size:12px}
+.chip{border:1px solid #3b4670;background:#141c33;border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
 .chip:hover{border-color:#818cf8;color:#c7d2fe}
 .drop{border:2px dashed #3b4670;border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
 .drop:hover,.drop.over{border-color:#818cf8;background:#10172a}
@@ -72,25 +70,40 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
 </svg>
 
-
-<!-- بوابة تسجيل الدخول بحساب Gmail -->
+<!-- بوابة تسجيل الدخول -->
 <div id="gate" class="fixed inset-0 flex items-center justify-center p-4" style="background:#080b16;z-index:1000">
-<div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-4">
-<div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto"><svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg></div>
-<h2 class="text-2xl font-black">Creative Studio AI</h2>
-<p class="text-sm text-slate-400">للاستخدام، سجّل الدخول بحساب Gmail.</p>
-<div id="gBtn" class="flex justify-center min-h-[44px]"></div>
-<p id="gMsg" class="text-sm text-red-400"></p>
-<div id="gSetup" class="hidden text-right text-xs text-slate-400 leading-6 card p-4">
-<p class="font-bold text-slate-200 mb-2">الإعداد المطلوب مرة واحدة:</p>
-<ol class="list-decimal pr-5 space-y-1">
-<li>افتح Google Cloud Console ثم APIs &amp; Services ثم Credentials.</li>
-<li>أنشئ OAuth client ID من نوع Web application.</li>
-<li>أضف عنوان موقعك في Authorized JavaScript origins، مثل https://yoursite.com أو http://localhost:8000</li>
-<li>انسخ Client ID وضعه في المتغير GOOGLE_CLIENT_ID أعلى السكربت في الملف.</li>
-</ol>
-</div>
-</div>
+  <div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-5">
+    <div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto">
+      <svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg>
+    </div>
+    <div>
+      <h2 class="text-2xl font-black">Creative Studio AI</h2>
+      <p class="text-sm text-slate-400 mt-1">أدخل بريدك الإلكتروني أو سجّل بحساب Puter للمتابعة</p>
+    </div>
+
+    <!-- تسجيل دخول بالبريد الإلكتروني مباشرة -->
+    <div class="space-y-3 text-right">
+      <input id="emailInput" type="email" dir="ltr" class="field text-center" placeholder="example@gmail.com">
+      <button onclick="emailLogin()" class="btn primary w-full text-base">
+        <svg class="ic"><use href="#i-user"/></svg>الدخول بالبريد الإلكتروني
+      </button>
+    </div>
+
+    <div class="flex items-center gap-3 text-xs text-slate-500">
+      <div class="h-px bg-slate-800 flex-1"></div>
+      <span>أو</span>
+      <div class="h-px bg-slate-800 flex-1"></div>
+    </div>
+
+    <!-- تسجيل دخول مباشر عبر Puter -->
+    <button onclick="puterGateLogin()" class="btn ghost w-full text-sm">
+      تسجيل الدخول عبر حساب Puter
+    </button>
+
+    <!-- زر Google الرسمي يظهر تلقائياً فقط إذا تم ضبط Client ID -->
+    <div id="gBtn" class="flex justify-center"></div>
+    <p id="gMsg" class="text-xs text-red-400"></p>
+  </div>
 </div>
 
 <header class="sticky top-0 z-50 glass">
@@ -99,12 +112,12 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <div class="w-11 h-11 rounded-xl primary flex items-center justify-center"><svg class="ic" style="width:1.5rem;height:1.5rem"><use href="#i-sparkle"/></svg></div>
 <div>
 <h1 class="font-black text-lg">Creative Studio AI</h1>
-<p class="text-xs text-slate-400">Ultimate Image Creator</p>
+<p class="text-xs text-slate-400">Ultimate Image &amp; Video Creator</p>
 </div>
 </div>
 <div class="flex items-center gap-2">
-<span id="gUser" class="hidden text-xs text-slate-400 max-w-[160px] truncate"></span>
-<button id="gOut" class="hidden btn ghost text-xs" onclick="googleSignOut()">خروج</button>
+<span id="gUser" class="hidden text-xs text-slate-400 max-w-[180px] truncate" dir="ltr"></span>
+<button id="gOut" class="hidden btn ghost text-xs" onclick="appSignOut()">خروج</button>
 <button id="authBtn" class="btn ghost text-xs" onclick="signIn()">
 <svg class="ic"><use href="#i-user"/></svg><span id="authLabel">تسجيل الدخول إلى Puter</span>
 </button>
@@ -117,7 +130,7 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <div class="mb-7">
 <h2 class="text-3xl font-black mb-2">أطلق العنان لخيالك</h2>
 <p class="text-slate-400 text-sm">
-ابحث عن الشخصيات، تعرّف على أي صورة، وحوّل أفكارك إلى صور بنماذج متعددة.
+ابحث عن الشخصيات، تعرّف على أي صورة، وحوّل أفكارك إلى صور وفيديوهات بنماذج متعددة.
 </p>
 </div>
 
@@ -248,13 +261,12 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 <option value="pollinations">Pollinations FLUX - بدون حساب (أبطأ)</option>
 </select>
 <p class="text-xs text-slate-500 mt-2">
-نماذج Puter تحتاج حساباً مجانياً على Puter (نافذة تسجيل تظهر مرة واحدة). عند فشل النموذج يتم التحويل تلقائياً إلى Pollinations.
+نماذج Puter تحتاج حساباً مجانياً على Puter. عند فشل النموذج يتم التحويل تلقائياً إلى Pollinations.
 </p>
 </div>
 
 <!-- الأبعاد والعدد -->
 <div class="grid grid-cols-3 gap-3">
-
 <div>
 <label class="text-sm block mb-2">الدقة</label>
 <select id="width" class="field">
@@ -282,7 +294,6 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 <option value="4">4</option>
 </select>
 </div>
-
 </div>
 
 <button id="generateBtn" onclick="generateImage()" class="btn primary w-full text-base">
@@ -528,7 +539,6 @@ Creative Studio AI Ultimate &copy; 2026
 </footer>
 
 <script>
-
 // ======================================
 // المتغيرات العامة
 // ======================================
@@ -571,7 +581,6 @@ const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const ALLOWED_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_GALLERY = 40;
 
-// يقبل https فقط، ويمكن حصره بقائمة نطاقات
 function safeUrl(u, hosts) {
   try {
     const x = new URL(u);
@@ -583,7 +592,6 @@ function safeUrl(u, hosts) {
   }
 }
 
-// تنظيف النصوص: إزالة محارف التحكم وحيل عكس الاتجاه وتحديد الطول
 function clean(s, max) {
   return String(s ?? "")
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u202A-\u202E\u2066-\u2069]/g, "")
@@ -591,7 +599,6 @@ function clean(s, max) {
     .slice(0, max);
 }
 
-// تحديد معدل الطلبات من جهة المتصفح
 const lastCall = {};
 function tooFast(key, ms) {
   const now = Date.now();
@@ -613,43 +620,12 @@ function sanitizeItem(item) {
 
 const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portrait 2:3", "1.778": "wide cinematic 16:9" };
 
-
 // ======================================
-// تسجيل الدخول بحساب Gmail (Google Identity Services)
+// بوابة الدخول (البريد الإلكتروني + Puter + Google اختياري)
 // ======================================
 
-// ضع هنا معرّف العميل من Google Cloud Console
 const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
-const ALLOWED_EMAIL_DOMAINS = ["gmail.com", "googlemail.com"];
-
 let authedUser = null;
-
-function decodeJwt(token) {
-  const part = String(token).split(".")[1];
-  if (!part) throw new Error("BAD_TOKEN");
-  const bin = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
-  const json = decodeURIComponent(
-    bin.split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-  );
-  return JSON.parse(json);
-}
-
-function validateGoogleToken(token) {
-
-  const p = decodeJwt(token);
-
-  if (p.aud !== GOOGLE_CLIENT_ID) throw new Error("BAD_AUDIENCE");
-  if (!["https://accounts.google.com", "accounts.google.com"].includes(p.iss)) throw new Error("BAD_ISSUER");
-  if (!p.exp || p.exp * 1000 <= Date.now()) throw new Error("EXPIRED");
-  if (p.email_verified !== true) throw new Error("UNVERIFIED");
-
-  const domain = String(p.email || "").toLowerCase().split("@")[1];
-
-  if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) throw new Error("NOT_GMAIL");
-
-  return p;
-
-}
 
 function lockApp(message) {
   document.body.classList.add("locked");
@@ -669,111 +645,114 @@ function unlockApp() {
 }
 
 function requireAuth() {
-  if (authedUser && authedUser.exp * 1000 > Date.now()) return true;
-  authedUser = null;
-  lockApp("انتهت الجلسة. سجّل الدخول من جديد.");
+  if (authedUser) return true;
+  lockApp("سجّل الدخول للمتابعة.");
   return false;
 }
 
-function handleCredential(response) {
-
-  try {
-
-    authedUser = validateGoogleToken(response.credential);
-
-    try { sessionStorage.setItem("gToken", response.credential); } catch (e) {}
-
-    unlockApp();
-
-  } catch (e) {
-
-    authedUser = null;
-
-    $("gMsg").textContent =
-      e.message === "NOT_GMAIL" ? "يُسمح بحسابات Gmail فقط."
-      : e.message === "UNVERIFIED" ? "بريدك غير موثّق لدى Google."
-      : e.message === "BAD_AUDIENCE" ? "معرّف العميل غير مطابق. راجع GOOGLE_CLIENT_ID."
-      : "فشل تسجيل الدخول. حاول مرة أخرى.";
-
+// الدخول عبر إدخال البريد الإلكتروني
+function emailLogin() {
+  const email = clean($("emailInput").value, 120).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    $("gMsg").textContent = "يرجى إدخال بريد إلكتروني صحيح.";
+    return;
   }
-
+  authedUser = { email };
+  try { localStorage.setItem("studioUserEmail", email); } catch (e) {}
+  unlockApp();
 }
 
-function googleSignOut() {
+$("emailInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") emailLogin();
+});
 
+// الدخول عبر حساب Puter
+async function puterGateLogin() {
+  if (!puterReady()) {
+    $("gMsg").textContent = "تعذر تحميل Puter. تحقق من الإنترنت أو استخدم البريد الإلكتروني أعلاه.";
+    return;
+  }
+  try {
+    await puter.auth.signIn();
+    const user = await puter.auth.getUser();
+    const label = user?.email || user?.username || "Puter User";
+    authedUser = { email: label };
+    try { localStorage.setItem("studioUserEmail", label); } catch (e) {}
+    refreshAuth();
+    unlockApp();
+  } catch (e) {
+    $("gMsg").textContent = "تم إلغاء تسجيل الدخول إلى Puter.";
+  }
+}
+
+function appSignOut() {
   try { window.google?.accounts?.id?.disableAutoSelect(); } catch (e) {}
-  try { sessionStorage.removeItem("gToken"); } catch (e) {}
-
+  try {
+    localStorage.removeItem("studioUserEmail");
+    sessionStorage.removeItem("gToken");
+  } catch (e) {}
   authedUser = null;
   lockApp("تم تسجيل الخروج.");
+}
 
+function decodeJwt(token) {
+  const part = String(token).split(".")[1];
+  if (!part) throw new Error("BAD_TOKEN");
+  const bin = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+  const json = decodeURIComponent(
+    bin.split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
+  );
+  return JSON.parse(json);
+}
+
+function handleGoogleCredential(response) {
+  try {
+    const p = decodeJwt(response.credential);
+    if (!p.email) throw new Error("NO_EMAIL");
+    authedUser = { email: p.email };
+    try { localStorage.setItem("studioUserEmail", p.email); } catch (e) {}
+    unlockApp();
+  } catch (e) {
+    $("gMsg").textContent = "فشل تسجيل الدخول عبر Google.";
+  }
 }
 
 function initGate() {
-
+  // استرجاع الجلسة المحفوظة تلقائياً
   try {
-    const saved = sessionStorage.getItem("gToken");
-    if (saved) authedUser = validateGoogleToken(saved);
-  } catch (e) {
-    authedUser = null;
-    try { sessionStorage.removeItem("gToken"); } catch (err) {}
-  }
-
-  if (authedUser) {
-    unlockApp();
-    return;
-  }
+    const savedEmail = localStorage.getItem("studioUserEmail");
+    if (savedEmail) {
+      authedUser = { email: savedEmail };
+      unlockApp();
+      return;
+    }
+  } catch (e) {}
 
   lockApp();
 
-  if (GOOGLE_CLIENT_ID.startsWith("YOUR_")) {
-    $("gSetup").classList.remove("hidden");
-    $("gMsg").textContent = "لم يتم ضبط معرّف Google بعد.";
-    return;
+  // تفعيل زر Google تلقائياً فقط إذا قمت بوضع Client ID حقيقي
+  if (!GOOGLE_CLIENT_ID.startsWith("YOUR_") && location.protocol !== "file:") {
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(timer);
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          auto_select: false
+        });
+        google.accounts.id.renderButton($("gBtn"), {
+          theme: "filled_black", size: "large", text: "signin_with",
+          shape: "pill", locale: "ar", width: 280
+        });
+      } else if (++tries > 40) {
+        clearInterval(timer);
+      }
+    }, 250);
   }
-
-  if (location.protocol === "file:") {
-    $("gMsg").textContent = "تسجيل Google لا يعمل من ملف محلي. شغّل الصفحة عبر http://localhost أو موقع https.";
-    return;
-  }
-
-  let tries = 0;
-
-  const timer = setInterval(() => {
-
-    if (window.google?.accounts?.id) {
-
-      clearInterval(timer);
-
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredential,
-        auto_select: false
-      });
-
-      google.accounts.id.renderButton($("gBtn"), {
-        theme: "filled_black", size: "large", text: "signin_with",
-        shape: "pill", locale: "ar", width: 280
-      });
-
-    } else if (++tries > 60) {
-
-      clearInterval(timer);
-      $("gMsg").textContent = "تعذر تحميل خدمة Google. تحقق من الإنترنت.";
-
-    }
-
-  }, 250);
-
 }
 
 window.addEventListener("load", initGate);
-
-// إغلاق الجلسة تلقائياً عند انتهاء صلاحية الرمز
-setInterval(() => {
-  if (authedUser && authedUser.exp * 1000 <= Date.now()) requireAuth();
-}, 30000);
-
 
 // ======================================
 // Puter: الحساب والمساعد
@@ -809,44 +788,28 @@ window.addEventListener("load", () => setTimeout(refreshAuth, 800));
 
 let chatModel = null;
 
-// اختيار أحدث نموذج Claude متاح في Puter، وإلا النموذج الافتراضي
 async function pickChatModel() {
-
   if (chatModel !== null) return chatModel;
-
   try {
-
     const list = await puter.ai.listModels();
-
     const ids = (list || [])
       .map(m => typeof m === "string" ? m : (m.id || m.name || ""))
       .filter(Boolean);
-
     const claude = ids.filter(i => /claude/i.test(i) && !/haiku/i.test(i));
     const sonnet = claude.filter(i => /sonnet/i.test(i)).sort().reverse();
-
     chatModel = sonnet[0] || claude.sort().reverse()[0] || "";
-
   } catch (e) {
     chatModel = "";
   }
-
   return chatModel;
-
 }
 
 function extractText(res) {
-
   if (typeof res === "string") return res;
-
   const c = res?.message?.content;
-
   if (typeof c === "string") return c;
-
   if (Array.isArray(c)) return c.map(x => x.text || "").join("");
-
   return res ? String(res) : "";
-
 }
 
 function withTimeout(promise, ms) {
@@ -856,44 +819,29 @@ function withTimeout(promise, ms) {
   ]);
 }
 
-// طلب نصي أو بصري إلى المساعد
 async function aiAsk(input, image) {
-
   if (!puterReady()) throw new Error("PUTER_MISSING");
-
   const model = await pickChatModel();
   const opts = model ? { model } : {};
-
   const res = image
     ? await withTimeout(puter.ai.chat(input, image, opts), 120000)
     : await withTimeout(puter.ai.chat(input, opts), 120000);
-
   return extractText(res).trim();
-
 }
 
 function aiJSON(text) {
-
   const m = text.match(/\{[\s\S]*\}/);
-
   if (!m) throw new Error("NO_JSON");
-
   return JSON.parse(m[0]);
-
 }
 
 function aiErrorMessage(e) {
-
   if (e && e.message === "PUTER_MISSING")
     return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
-
   if (e && e.message === "TIMEOUT")
     return "انتهت مهلة الانتظار. حاول مرة أخرى.";
-
   return "تعذر الاتصال بالمساعد. سجّل الدخول إلى Puter من الأعلى ثم حاول مجدداً.";
-
 }
-
 
 // ======================================
 // اختيار الأسلوب
@@ -906,7 +854,6 @@ document.querySelectorAll(".style").forEach(button => {
     selectedStyle = button.dataset.style;
   });
 });
-
 
 // ======================================
 // البحث الشامل عن الشخصيات
@@ -925,7 +872,6 @@ function cleanText(t) {
 }
 
 async function searchAniList(q) {
-
   const query = `query($s:String){Page(perPage:10){characters(search:$s){
 name{full native} image{medium} description(asHtml:false) siteUrl
 media(perPage:1){nodes{title{romaji english}}}}}}`;
@@ -937,7 +883,6 @@ media(perPage:1){nodes{title{romaji english}}}}}}`;
   });
 
   if (!r.ok) throw new Error("AniList");
-
   const d = await r.json();
 
   return (d.data?.Page?.characters || []).map(c => {
@@ -951,17 +896,13 @@ media(perPage:1){nodes{title{romaji english}}}}}}`;
       url: c.siteUrl
     };
   });
-
 }
 
 async function searchJikan(q) {
-
   const r = await fetch(
     `https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=10&order_by=favorites&sort=desc`
   );
-
   if (!r.ok) throw new Error("Jikan");
-
   const d = await r.json();
 
   return (d.data || []).map(c => ({
@@ -972,11 +913,9 @@ async function searchJikan(q) {
     description: cleanText(c.about),
     url: c.url
   }));
-
 }
 
 async function searchWiki(lang, q) {
-
   const url =
     `https://${lang}.wikipedia.org/w/api.php?action=query&generator=search` +
     `&gsrsearch=${encodeURIComponent(q)}&gsrlimit=6` +
@@ -984,9 +923,7 @@ async function searchWiki(lang, q) {
     `&piprop=thumbnail&pithumbsize=120&format=json&origin=*`;
 
   const r = await fetch(url);
-
   if (!r.ok) throw new Error("Wikipedia " + lang);
-
   const d = await r.json();
 
   return Object.values(d.query?.pages || {})
@@ -999,13 +936,10 @@ async function searchWiki(lang, q) {
       description: cleanText(pg.extract),
       url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title.replace(/ /g, "_"))}`
     }));
-
 }
 
 async function searchCharacter(overrideQuery) {
-
   if (!requireAuth()) return;
-
   const query = clean(typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value, 120);
 
   if (!query) {
@@ -1043,7 +977,6 @@ async function searchCharacter(overrideQuery) {
   }
 
   results.forEach(item => {
-
     const btn = document.createElement("button");
     btn.className = "card w-full p-2 text-right text-sm hover:border-indigo-500 flex items-center gap-3";
 
@@ -1072,13 +1005,10 @@ async function searchCharacter(overrideQuery) {
     btn.onclick = () => showCharacter(item);
 
     $("characterResults").appendChild(btn);
-
   });
-
 }
 
 function showCharacter(item) {
-
   selectedCharacter = {
     name: item.title,
     series: item.subtitle,
@@ -1107,13 +1037,10 @@ function showCharacter(item) {
   } else {
     $("characterImage").classList.add("hidden");
   }
-
 }
 
 function useCharacter() {
-
   if (!selectedCharacter) return;
-
   const details = selectedCharacter.description.slice(0, 400);
 
   $("prompt").value =
@@ -1124,18 +1051,14 @@ function useCharacter() {
     `Detailed face, accurate anatomy.`;
 
   $("prompt").focus();
-
 }
 
-
 // ======================================
-// البحث الذكي (المساعد يستنتج الاسم من الوصف)
+// البحث الذكي
 // ======================================
 
 function showChips(names) {
-
   $("smartChips").innerHTML = "";
-
   names.forEach(n => {
     const c = document.createElement("button");
     c.className = "chip";
@@ -1143,13 +1066,10 @@ function showChips(names) {
     c.onclick = () => searchCharacter(n);
     $("smartChips").appendChild(c);
   });
-
 }
 
 async function smartSearch() {
-
   if (!requireAuth()) return;
-
   const text = clean($("characterSearch").value, 300);
 
   if (!text) {
@@ -1163,7 +1083,6 @@ async function smartSearch() {
   $("smartChips").innerHTML = '<span class="text-xs text-indigo-300">المساعد يحلل طلبك...</span>';
 
   try {
-
     const answer = await aiAsk(
       "The user describes a fictional character, anime, game, or public work they want to find (any language). " +
       "Reply ONLY with JSON: {\"names\":[\"up to 4 most likely English names, best first\"]}. " +
@@ -1171,108 +1090,73 @@ async function smartSearch() {
     );
 
     const names = (aiJSON(answer).names || []).slice(0, 4).map(n => clean(n, 80)).filter(Boolean);
-
     if (!names.length) throw new Error("NO_NAMES");
 
     showChips(names);
     searchCharacter(names[0]);
-
   } catch (e) {
-
     $("smartChips").innerHTML = "";
     $("characterResults").textContent = aiErrorMessage(e);
-
   } finally {
-
     $("smartBtn").disabled = false;
-
   }
-
 }
-
 
 // ======================================
 // البحث بالصورة
 // ======================================
 
-// تصغير الصورة قبل إرسالها للتحليل لتسريع الطلب
 function fileToDataUrl(file, maxSide = 1024) {
-
   return new Promise((resolve, reject) => {
-
     const reader = new FileReader();
-
     reader.onerror = () => reject(new Error("read"));
-
     reader.onload = () => {
-
       const img = new Image();
-
       img.onerror = () => reject(new Error("decode"));
-
       img.onload = () => {
-
         const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
         const canvas = document.createElement("canvas");
-
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
-
         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-
         resolve(canvas.toDataURL("image/jpeg", 0.88));
-
       };
-
       img.src = reader.result;
-
     };
-
     reader.readAsDataURL(file);
-
   });
-
 }
 
 async function setUploaded(file) {
-
   if (!file || !ALLOWED_UPLOAD_TYPES.includes(file.type)) {
     alert("الأنواع المسموحة: JPG, PNG, WEBP, GIF.");
     return;
   }
-
   if (file.size > MAX_UPLOAD_BYTES) {
     alert("حجم الصورة كبير. الحد الأقصى 15 ميجابايت.");
     return;
   }
-
   uploadedFile = file;
-
   try {
     uploadedDataUrl = await fileToDataUrl(file);
   } catch (e) {
     alert("تعذر قراءة الصورة.");
     return;
   }
-
   $("uploadPreview").src = uploadedDataUrl;
   $("uploadBox").classList.remove("hidden");
   $("identifyResult").innerHTML = "";
-
 }
 
 $("fileInput").addEventListener("change", e => setUploaded(e.target.files[0]));
 
 const drop = $("dropZone");
-
 ["dragenter", "dragover"].forEach(ev =>
   drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })
 );
-
 ["dragleave", "drop"].forEach(ev =>
   drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); })
 );
-
 drop.addEventListener("drop", e => setUploaded(e.dataTransfer.files[0]));
 
 document.addEventListener("paste", e => {
@@ -1301,16 +1185,13 @@ function escapeHtml(s) {
 }
 
 async function identifyImage() {
-
   if (!requireAuth()) return;
-
   if (!uploadedDataUrl || tooFast("identify", 3000)) return;
 
   $("identifyResult").innerHTML = "";
   setIdentifyLoading(true, "المساعد يحلل الصورة...");
 
   try {
-
     const answer = await aiAsk(
       "Look at this image and reply ONLY with JSON: " +
       "{\"description\":\"2-3 sentence description in Arabic\"," +
@@ -1351,35 +1232,25 @@ async function identifyImage() {
       b.onclick = () => { $("prompt").value = clean(data.image_prompt, 1200); $("prompt").focus(); };
       box.appendChild(b);
     }
-
   } catch (e) {
-
     addInfoBox(`<p class="text-red-400">${escapeHtml(aiErrorMessage(e))}</p>`);
-
   } finally {
-
     setIdentifyLoading(false);
-
   }
-
 }
 
 async function traceAnime() {
-
   if (!requireAuth()) return;
-
   if (!uploadedFile || tooFast("trace", 3000)) return;
 
   $("identifyResult").innerHTML = "";
   setIdentifyLoading(true, "جاري البحث عن مصدر المشهد...");
 
   try {
-
     const fd = new FormData();
     fd.append("image", uploadedFile);
 
     const r = await withTimeout(fetch("https://api.trace.moe/search?anilistInfo", { method: "POST", body: fd }), 60000);
-
     if (!r.ok) throw new Error("HTTP " + r.status);
 
     const d = await r.json();
@@ -1391,7 +1262,6 @@ async function traceAnime() {
     }
 
     list.forEach(item => {
-
       const t = item.anilist?.title || {};
       const title = clean(t.english || t.romaji || t.native || "غير معروف", 150);
       const thumb = safeUrl(item.image);
@@ -1412,30 +1282,20 @@ async function traceAnime() {
       b.textContent = "ابحث عن شخصيات هذا العمل";
       b.onclick = () => searchCharacter(title);
       box.appendChild(b);
-
     });
-
   } catch (e) {
-
     addInfoBox('<p class="text-red-400">تعذر الاتصال بخدمة trace.moe أو تم تجاوز الحد المسموح. حاول لاحقاً.</p>');
-
   } finally {
-
     setIdentifyLoading(false);
-
   }
-
 }
-
 
 // ======================================
 // تحسين الوصف بالمساعد
 // ======================================
 
 async function enhancePrompt() {
-
   if (!requireAuth()) return;
-
   const text = clean($("prompt").value, 1200);
 
   if (!text) {
@@ -1448,118 +1308,81 @@ async function enhancePrompt() {
   $("enhanceBtn").disabled = true;
 
   try {
-
     const style = STYLE_PROMPTS[selectedStyle] || selectedStyle;
-
     const answer = await aiAsk(
       "Rewrite the idea below as one detailed English prompt for an AI image generator. " +
       "Describe subject, pose, clothing, camera angle, lighting, colors, background and mood. " +
       "Preferred style: " + style + ". Keep it under 120 words. Reply with the prompt only. Idea: " + text
     );
-
     if (answer) $("prompt").value = clean(answer.replace(/^["'\s]+|["'\s]+$/g, ""), 1200);
-
   } catch (e) {
-
     alert(aiErrorMessage(e));
-
   } finally {
-
     $("enhanceBtn").disabled = false;
-
   }
-
 }
-
 
 // ======================================
 // توليد الصور
 // ======================================
 
 function buildPollinationsUrl(fullPrompt, width, height, seed) {
-
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}` +
     `?width=${width}&height=${height}&seed=${seed}` +
     `&model=flux&nologo=true` +
     `&negative_prompt=${encodeURIComponent(NEGATIVE_PROMPT)}`;
-
 }
 
 async function fetchImageBlob(url) {
-
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180000);
 
   try {
-
     const response = await fetch(url, { signal: controller.signal });
-
     if (response.status === 429 || response.status >= 500) {
       const err = new Error("busy");
       err.retryable = true;
       throw err;
     }
-
     if (!response.ok) throw new Error("HTTP " + response.status);
-
     const blob = await response.blob();
-
     if (!blob.type.startsWith("image/")) {
       const err = new Error("not image");
       err.retryable = true;
       throw err;
     }
-
     return URL.createObjectURL(blob);
-
   } finally {
     clearTimeout(timer);
   }
-
 }
 
 function loadViaImgTag(url) {
-
   return new Promise((resolve, reject) => {
-
     const img = new Image();
     const timer = setTimeout(() => reject(new Error("timeout")), 180000);
-
     img.onload = () => { clearTimeout(timer); resolve(url); };
     img.onerror = () => { clearTimeout(timer); reject(new Error("load failed")); };
-
     img.referrerPolicy = "no-referrer";
     img.src = url;
-
   });
-
 }
 
 async function generateViaPollinations(fullPrompt, width, height, thisRequest) {
-
   const seed = Math.floor(Math.random() * 999999999);
   const url = buildPollinationsUrl(fullPrompt, width, height, seed);
-
   let lastError = null;
 
   for (let attempt = 1; attempt <= 3; attempt++) {
-
     if (thisRequest !== requestNumber) throw new Error("CANCELLED");
-
     try {
-
       if (attempt > 1) $("loadingMessage").textContent = `الخدمة مشغولة، إعادة المحاولة ${attempt}/3...`;
-
       return await fetchImageBlob(url);
-
     } catch (error) {
-
       lastError = error;
-
       if (error instanceof TypeError) {
         return await loadViaImgTag(url);
       }
-
       if (error.retryable && attempt < 3) {
         for (let s = 16; s > 0; s--) {
           $("loadingMessage").textContent = `الخدمة المجانية مشغولة. إعادة المحاولة بعد ${s} ثانية...`;
@@ -1567,45 +1390,29 @@ async function generateViaPollinations(fullPrompt, width, height, thisRequest) {
         }
         continue;
       }
-
       break;
-
     }
-
   }
-
   throw lastError || new Error("failed");
-
 }
 
 async function generateViaPuter(model, fullPrompt) {
-
   if (!puterReady()) throw new Error("PUTER_MISSING");
-
   const aspect = ASPECT_TEXT[$("ratio").value] || "square 1:1";
-
   const el = await withTimeout(
     puter.ai.txt2img(`${fullPrompt}, ${aspect} composition`, { model }),
     180000
   );
-
   const src = el?.src;
-
-  // المسموح: صور base64 أو blob أو رابط https فقط
   if (!src || !/^(data:image\/(png|jpeg|webp|gif);base64,|blob:|https:)/.test(src)) throw new Error("EMPTY");
-
   return src;
-
 }
 
 async function generateImage() {
-
   if (!requireAuth()) return;
-
   if (isGenerating) return;
 
   const prompt = clean($("prompt").value, 1200);
-
   if (!prompt) {
     alert("اكتب وصف الصورة أولاً.");
     return;
@@ -1634,40 +1441,26 @@ async function generateImage() {
 
   let done = 0;
   let lastError = null;
-  let usedFallback = false;
 
   for (let i = 1; i <= count; i++) {
-
     if (thisRequest !== requestNumber) return;
-
     $("loadingMessage").textContent = count > 1 ? `جاري إنشاء الصورة ${i} من ${count}...` : "جاري إنشاء الصورة...";
-
     let url = null;
 
     try {
-
       if (engine.startsWith("puter:")) {
-
         try {
           url = await generateViaPuter(engine.slice(6), fullPrompt);
         } catch (e) {
-          // تحويل تلقائي إلى المحرك المجاني
-          usedFallback = true;
           $("loadingMessage").textContent = "تعذر نموذج Puter، التحويل إلى Pollinations...";
           url = await generateViaPollinations(fullPrompt, width, height, thisRequest);
         }
-
       } else {
-
         url = await generateViaPollinations(fullPrompt, width, height, thisRequest);
-
       }
-
     } catch (e) {
-
       lastError = e;
       break;
-
     }
 
     if (thisRequest !== requestNumber) return;
@@ -1685,7 +1478,6 @@ async function generateImage() {
 
     renderGallery();
     done++;
-
   }
 
   if (thisRequest !== requestNumber) return;
@@ -1696,34 +1488,26 @@ async function generateImage() {
   $("loadingState").classList.remove("flex");
 
   if (!done) {
-
     $("errorState").classList.remove("hidden");
-
     $("errorMessage").textContent =
       lastError && lastError.message === "TIMEOUT"
         ? "انتهت مهلة الانتظار. جرب محركاً آخر أو حاول لاحقاً."
         : "تعذر توليد الصورة. سجّل الدخول إلى Puter من الأعلى أو جرب محرك Pollinations.";
-
   }
-
 }
-
 
 // ======================================
 // المعرض والتحميل
 // ======================================
 
 function renderGallery() {
-
   $("gallery").innerHTML = "";
-
   if (!gallery.length) {
     $("gallery").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>';
     return;
   }
 
   gallery.forEach(item => {
-
     const card = document.createElement("div");
     card.className = "card";
 
@@ -1753,19 +1537,14 @@ function renderGallery() {
     content.append(text, button);
     card.append(img, content);
     $("gallery").appendChild(card);
-
   });
-
 }
 
 async function downloadImage() {
-
   if (!currentImage) return;
-
   let href = currentImage;
   let temp = null;
 
-  // الروابط الخارجية تُحوَّل إلى blob ليعمل التحميل مباشرة
   if (!/^(blob:|data:)/.test(href)) {
     try {
       const r = await fetch(href);
@@ -1785,22 +1564,16 @@ async function downloadImage() {
   link.remove();
 
   if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
-
 }
 
 function clearGallery() {
-
   if (!confirm("هل تريد مسح جميع الصور من المعرض؟")) return;
-
   gallery.forEach(item => {
     if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url);
   });
-
   gallery = [];
   renderGallery();
-
 }
-
 
 // ======================================
 // التبويبات
@@ -1813,7 +1586,6 @@ function switchTab(tab) {
   $("tabImage").className = "btn " + (isVideo ? "ghost" : "primary");
   $("tabVideo").className = "btn " + (isVideo ? "primary" : "ghost");
 }
-
 
 // ======================================
 // استوديو الفيديو
@@ -1842,7 +1614,6 @@ const VIDEO_CAMERAS = [
   ["crane", "رفع كرين", "crane shot rising up"]
 ];
 
-// [الرمز، الاسم المعروض، الاسم بالإنجليزية للمساعد]
 const VIDEO_LANGS = [
   ["auto", "كما كتبته (بدون ترجمة)", ""],
   ["ar", "العربية", "Arabic"], ["en", "English", "English"], ["es", "Español", "Spanish"],
@@ -1876,7 +1647,6 @@ let isVideoGenerating = false;
 let videoGallery = [];
 let vTimer = null;
 
-// أي تغيير في المدخلات يلغي الوصف المبني سابقاً
 ["vScene", "vDialogue", "vLang", "vStyle", "vCamera", "vLangOther"].forEach(id => {
   $(id).addEventListener("input", () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; });
   $(id).addEventListener("change", () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; });
@@ -1887,7 +1657,6 @@ $("vLang").addEventListener("change", () => {
 });
 
 function parseDialogue(raw) {
-
   return clean(raw, 1500)
     .split(/\n+/)
     .map(l => l.trim())
@@ -1900,17 +1669,13 @@ function parseDialogue(raw) {
         : { name: "", text: clean(l, 220) };
     })
     .filter(x => x.text);
-
 }
 
 function videoInputs() {
-
   const style = VIDEO_STYLES.find(x => x[0] === $("vStyle").value) || VIDEO_STYLES[0];
   const cam = VIDEO_CAMERAS.find(x => x[0] === $("vCamera").value) || VIDEO_CAMERAS[0];
   const lang = VIDEO_LANGS.find(x => x[0] === $("vLang").value);
-
   let langEn = lang ? lang[2] : "";
-
   if ($("vLang").value === "other") langEn = clean($("vLangOther").value, 40);
 
   return {
@@ -1921,29 +1686,21 @@ function videoInputs() {
     langEn,
     audio: $("vAudio").checked
   };
-
 }
 
-// قالب محلي يعمل حتى إن تعذر المساعد (الحوار بلغته كما كُتب)
 function buildLocalVideoPrompt(inp) {
-
   let p = `${inp.style}. ${inp.scene || "A cinematic scene"}. Camera: ${inp.camera}.`;
-
   if (inp.lines.length) {
     p += " The characters speak aloud on camera with clear, natural, lip-synced voices: " +
       inp.lines.map(l => `${l.name ? l.name + " says" : "Says"}: "${l.text}"`).join(" ") + ".";
   } else if (inp.audio) {
     p += " Rich ambient sound design.";
   }
-
   p += " Sharp, high detail, smooth natural motion, consistent characters, no on-screen text, no watermark.";
-
   return { prompt: clean(p, 2500), captions: inp.lines };
-
 }
 
 async function buildVideoPromptAI(inp) {
-
   const answer = await aiAsk(
     "You are an expert prompt engineer for text-to-video models with native synchronized audio (Veo, Sora). " +
     "Create ONE vivid English video prompt from the data below. Include: visual style, characters (age, look, voice tone), " +
@@ -1959,9 +1716,7 @@ async function buildVideoPromptAI(inp) {
   );
 
   const d = aiJSON(answer);
-
   const prompt = clean(d.prompt, 2500);
-
   if (!prompt) throw new Error("EMPTY");
 
   const captions = (d.dialogue || []).slice(0, 8)
@@ -1969,45 +1724,32 @@ async function buildVideoPromptAI(inp) {
     .filter(x => x.text);
 
   return { prompt, captions };
-
 }
 
 async function buildVideoPrompt(silent) {
-
   if (!requireAuth()) throw new Error("AUTH");
-
   const inp = videoInputs();
-
   if (!inp.scene && !inp.lines.length) {
     if (!silent) alert("اكتب وصف المشهد أو الحوار أولاً.");
     throw new Error("EMPTY_INPUT");
   }
 
   $("vBuildBtn").disabled = true;
-
   let result;
 
   try {
-
     result = await buildVideoPromptAI(inp);
     $("vNote").textContent = "";
-
   } catch (e) {
-
     result = buildLocalVideoPrompt(inp);
     $("vNote").textContent = "تعذر المساعد، فاستُخدم قالب جاهز. يمكنك تعديل الوصف يدوياً.";
-
   } finally {
-
     $("vBuildBtn").disabled = false;
-
   }
 
   $("vFinal").value = result.prompt;
   vCaptions = result.captions;
-
   return result;
-
 }
 
 function videoSizeFor(ratio, quality) {
@@ -2021,18 +1763,12 @@ function videoSrcOf(el) {
 }
 
 function videoErrorMessage(e) {
-
   const raw = String(e?.error?.message || e?.message || e || "");
-
   if (e && e.message === "TIMEOUT") return "انتهت مهلة الانتظار. الفيديو يحتاج وقتاً طويلاً، حاول مرة أخرى.";
-
   if (e && e.message === "PUTER_MISSING") return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
-
   if (/credit|fund|balance|insufficient|quota/i.test(raw))
     return "رصيد حسابك على Puter غير كافٍ لهذا الفيديو. جرّب وضع التجربة أو مدة/دقة أقل أو انتظر تجديد الرصيد.";
-
   return "تعذر إنشاء الفيديو. سجّل الدخول إلى Puter من الأعلى، أو غيّر النموذج، أو جرّب وضع التجربة.";
-
 }
 
 function setVideoState(state) {
@@ -2044,11 +1780,8 @@ function setVideoState(state) {
 }
 
 async function generateVideo() {
-
   if (!requireAuth()) return;
-
   if (isVideoGenerating) return;
-
   if (tooFast("video", 4000)) return;
 
   const inp = videoInputs();
@@ -2064,7 +1797,6 @@ async function generateVideo() {
   setVideoState("vLoading");
 
   const started = Date.now();
-
   clearInterval(vTimer);
   vTimer = setInterval(() => {
     $("vLoadingMsg").textContent =
@@ -2072,7 +1804,6 @@ async function generateVideo() {
   }, 1000);
 
   try {
-
     if (!puterReady()) throw new Error("PUTER_MISSING");
 
     if (!prompt) {
@@ -2086,7 +1817,6 @@ async function generateVideo() {
     const test = $("vTest").checked;
     const audio = $("vAudio").checked;
 
-    // محاولات متدرجة: بعض النماذج ترفض بعض الخيارات
     const attempts = [
       { model, seconds, size, generate_audio: audio, test_mode: test },
       { model, seconds, generate_audio: audio, test_mode: test },
@@ -2097,7 +1827,6 @@ async function generateVideo() {
     let lastError = null;
 
     for (const opts of attempts) {
-
       try {
         video = await withTimeout(puter.ai.txt2vid(prompt, opts), 900000);
         break;
@@ -2105,13 +1834,11 @@ async function generateVideo() {
         lastError = e;
         if (e && e.message === "TIMEOUT") break;
       }
-
     }
 
     if (!video) throw lastError || new Error("FAILED");
 
     const src = videoSrcOf(video);
-
     if (!src || !/^(blob:|https:|data:video\/)/.test(src)) throw new Error("BAD_VIDEO");
 
     const captions = vCaptions && vCaptions.length ? vCaptions : inp.lines;
@@ -2130,27 +1857,19 @@ async function generateVideo() {
     currentCaptions = captions;
     renderVideoGallery();
     setVideoState("vResult");
-
   } catch (e) {
-
     $("vErrorMsg").textContent = videoErrorMessage(e);
     setVideoState("vError");
-
   } finally {
-
     clearInterval(vTimer);
     isVideoGenerating = false;
     $("vGenBtn").disabled = false;
-
   }
-
 }
 
 let currentCaptions = [];
 
-// ترجمة الحوار فوق الفيديو موزعة على مدته
 $("vPlayer").addEventListener("timeupdate", () => {
-
   const v = $("vPlayer");
   const box = $("vCaption");
 
@@ -2164,22 +1883,18 @@ $("vPlayer").addEventListener("timeupdate", () => {
 
   box.textContent = (c.name ? c.name + ": " : "") + c.text;
   box.classList.remove("hidden");
-
 });
 
 $("vPlayer").addEventListener("ended", () => $("vCaption").classList.add("hidden"));
 
 function renderVideoGallery() {
-
   $("vGallery").innerHTML = "";
-
   if (!videoGallery.length) {
     $("vGallery").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد فيديوهات بعد.</p>';
     return;
   }
 
   videoGallery.forEach(item => {
-
     const card = document.createElement("div");
     card.className = "card";
 
@@ -2212,30 +1927,21 @@ function renderVideoGallery() {
     content.append(text, button);
     card.append(vid, content);
     $("vGallery").appendChild(card);
-
   });
-
 }
 
 function clearVideoGallery() {
-
   if (!confirm("هل تريد مسح كل الفيديوهات من المعرض؟")) return;
-
   videoGallery.forEach(item => {
     if (item.src.startsWith("blob:")) URL.revokeObjectURL(item.src);
   });
-
   videoGallery = [];
   renderVideoGallery();
-
 }
 
 async function downloadVideo() {
-
   const src = $("vPlayer").src;
-
   if (!src) return;
-
   let href = src;
   let temp = null;
 
@@ -2258,9 +1964,7 @@ async function downloadVideo() {
   link.remove();
 
   if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
-
 }
-
 
 // ======================================
 // المساعد الذكي (محادثة)
@@ -2276,31 +1980,21 @@ let chatHistory = [];
 let isChatting = false;
 
 function addChatBubble(role, text) {
-
   const box = document.createElement("div");
-
   box.className = role === "user"
     ? "rounded-xl p-3 bg-indigo-900/40 border border-indigo-700/50"
     : "rounded-xl p-3 bg-slate-800/60 border border-slate-700";
-
   box.style.whiteSpace = "pre-wrap";
   box.textContent = text;
-
   $("chatLog").appendChild(box);
   $("chatLog").scrollTop = $("chatLog").scrollHeight;
-
   return box;
-
 }
 
 async function sendChat() {
-
   if (!requireAuth()) return;
-
   if (isChatting) return;
-
   const text = clean($("chatInput").value, 2000);
-
   if (!text || tooFast("chat", 1200)) return;
 
   isChatting = true;
@@ -2313,61 +2007,43 @@ async function sendChat() {
   const waiting = addChatBubble("assistant", "...");
 
   try {
-
     if (!puterReady()) throw new Error("PUTER_MISSING");
-
     const model = await pickChatModel();
     const opts = model ? { model } : {};
-
     const messages = [{ role: "system", content: CHAT_SYSTEM }, ...chatHistory.slice(-12)];
-
     const res = await withTimeout(puter.ai.chat(messages, opts), 120000);
     const answer = extractText(res).trim();
-
     if (!answer) throw new Error("EMPTY");
 
     waiting.textContent = answer;
     chatHistory.push({ role: "assistant", content: answer });
-
   } catch (error) {
-
     waiting.textContent = aiErrorMessage(error);
     chatHistory.pop();
-
   } finally {
-
     isChatting = false;
     $("chatBtn").disabled = false;
     $("chatLog").scrollTop = $("chatLog").scrollHeight;
-
   }
-
 }
 
 function useLastAnswer() {
-
   const last = [...chatHistory].reverse().find(m => m.role === "assistant");
-
   if (!last) {
     alert("لا يوجد رد من المساعد بعد.");
     return;
   }
-
   $("prompt").value = clean(last.content, 1200);
   $("prompt").focus();
-
 }
 
 function clearChat() {
-
   chatHistory = [];
   $("chatLog").innerHTML = '<p class="text-xs text-slate-500">اسأل عن أي موضوع، أو اطلب مساعدة في كتابة وصف الصورة.</p>';
-
 }
 
 $("chatInput").addEventListener("keydown", e => { if (e.key === "Enter") sendChat(); });
 $("characterSearch").addEventListener("keydown", e => { if (e.key === "Enter") searchCharacter(); });
-
 </script>
 
 </body>
