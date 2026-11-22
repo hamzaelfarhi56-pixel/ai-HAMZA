@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; worker-src blob:; connect-src 'self' https://accounts.google.com https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://accounts.google.com https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<!-- سياسة أمان المحتوى: تحدد المصادر المسموح بها فقط. إن تعطل Puter فاحذف هذا الوسم أولاً للتشخيص -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; worker-src blob:; connect-src 'self' https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script>
+// منع تضمين الصفحة داخل إطار موقع آخر (Clickjacking)
 if (window.top !== window.self) {
   document.documentElement.style.display = "none";
   try { window.top.location = window.self.location; } catch (e) {}
@@ -14,7 +16,6 @@ if (window.top !== window.self) {
 <title>Creative Studio AI Ultimate</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://js.puter.com/v2/"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -23,13 +24,13 @@ body{font-family:Cairo,sans-serif;background:#080b16;color:#f1f5f9}
 .glass{background:rgba(20,27,47,.88);border:1px solid #29334c}
 .field{width:100%;background:#0b1020;border:1px solid #29334c;border-radius:12px;padding:12px;color:white;outline:none}
 .field:focus{border-color:#818cf8}
-.btn{border-radius:12px;padding:10px 16px;font-weight:700;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.btn{border-radius:12px;padding:10px 16px;font-weight:700;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .primary{background:linear-gradient(110deg,#6366f1,#9333ea)}
 .primary:hover{filter:brightness(1.15)}
 .ghost{background:#10172a;border:1px solid #29334c}
 .ghost:hover{border-color:#818cf8}
 button:disabled{opacity:.55;cursor:not-allowed}
-.style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600;cursor:pointer}
+.style{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600}
 .style.active{border-color:#818cf8;background:#312e81;color:white}
 .spinner{width:42px;height:42px;border:4px solid #333b59;border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -39,11 +40,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #resultImage{max-width:100%;max-height:650px;object-fit:contain}
 .ic{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .ic-lg{width:3.5rem;height:3.5rem}
-.chip{border:1px solid #3b4670;background:#141c33;border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+.chip{border:1px solid #3b4670;background:#141c33;border-radius:999px;padding:4px 12px;font-size:12px}
 .chip:hover{border-color:#818cf8;color:#c7d2fe}
 .drop{border:2px dashed #3b4670;border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
 .drop:hover,.drop.over{border-color:#818cf8;background:#10172a}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.mode-btn{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600}
+.mode-btn.active{border-color:#818cf8;background:#312e81;color:white}
 .vcap{background:rgba(0,0,0,.72);color:#fff;border-radius:10px;padding:6px 12px;font-size:15px;line-height:1.7}
 body.locked > header, body.locked > main, body.locked > footer{display:none!important}
 </style>
@@ -70,40 +73,17 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
 </svg>
 
-<!-- بوابة تسجيل الدخول -->
+
+<!-- بوابة تسجيل الدخول بحساب Gmail -->
 <div id="gate" class="fixed inset-0 flex items-center justify-center p-4" style="background:#080b16;z-index:1000">
-  <div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-5">
-    <div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto">
-      <svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg>
-    </div>
-    <div>
-      <h2 class="text-2xl font-black">Creative Studio AI</h2>
-      <p class="text-sm text-slate-400 mt-1">أدخل بريدك الإلكتروني أو سجّل بحساب Puter للمتابعة</p>
-    </div>
-
-    <!-- تسجيل دخول بالبريد الإلكتروني مباشرة -->
-    <div class="space-y-3 text-right">
-      <input id="emailInput" type="email" dir="ltr" class="field text-center" placeholder="example@gmail.com">
-      <button onclick="emailLogin()" class="btn primary w-full text-base">
-        <svg class="ic"><use href="#i-user"/></svg>الدخول بالبريد الإلكتروني
-      </button>
-    </div>
-
-    <div class="flex items-center gap-3 text-xs text-slate-500">
-      <div class="h-px bg-slate-800 flex-1"></div>
-      <span>أو</span>
-      <div class="h-px bg-slate-800 flex-1"></div>
-    </div>
-
-    <!-- تسجيل دخول مباشر عبر Puter -->
-    <button onclick="puterGateLogin()" class="btn ghost w-full text-sm">
-      تسجيل الدخول عبر حساب Puter
-    </button>
-
-    <!-- زر Google الرسمي يظهر تلقائياً فقط إذا تم ضبط Client ID -->
-    <div id="gBtn" class="flex justify-center"></div>
-    <p id="gMsg" class="text-xs text-red-400"></p>
-  </div>
+<div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+<div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto"><svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg></div>
+<h2 class="text-2xl font-black">Creative Studio AI</h2>
+<p class="text-sm text-slate-400">سجّل الدخول للمتابعة، واختر <b>Google</b> من نافذة التسجيل.</p>
+<button id="gBtn" class="btn primary w-full text-base" onclick="gateSignIn()"><svg class="ic"><use href="#i-user"/></svg>المتابعة بحساب Google</button>
+<p id="gMsg" class="text-sm text-red-400"></p>
+<p class="text-xs text-slate-500 leading-6">تظهر نافذة تسجيل من Puter (الخدمة التي تشغّل الذكاء الاصطناعي هنا)، وفيها زر Google دون أي إعداد منك.</p>
+</div>
 </div>
 
 <header class="sticky top-0 z-50 glass">
@@ -112,13 +92,13 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <div class="w-11 h-11 rounded-xl primary flex items-center justify-center"><svg class="ic" style="width:1.5rem;height:1.5rem"><use href="#i-sparkle"/></svg></div>
 <div>
 <h1 class="font-black text-lg">Creative Studio AI</h1>
-<p class="text-xs text-slate-400">Ultimate Image &amp; Video Creator</p>
+<p class="text-xs text-slate-400">Ultimate Image Creator</p>
 </div>
 </div>
 <div class="flex items-center gap-2">
-<span id="gUser" class="hidden text-xs text-slate-400 max-w-[180px] truncate" dir="ltr"></span>
-<button id="gOut" class="hidden btn ghost text-xs" onclick="appSignOut()">خروج</button>
-<button id="authBtn" class="btn ghost text-xs" onclick="signIn()">
+<span id="gUser" class="hidden text-xs text-slate-400 max-w-[160px] truncate"></span>
+<button id="gOut" class="hidden btn ghost text-xs" onclick="signOutApp()">خروج</button>
+<button id="authBtn" class="hidden btn ghost text-xs" onclick="signIn()">
 <svg class="ic"><use href="#i-user"/></svg><span id="authLabel">تسجيل الدخول إلى Puter</span>
 </button>
 </div>
@@ -130,7 +110,7 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <div class="mb-7">
 <h2 class="text-3xl font-black mb-2">أطلق العنان لخيالك</h2>
 <p class="text-slate-400 text-sm">
-ابحث عن الشخصيات، تعرّف على أي صورة، وحوّل أفكارك إلى صور وفيديوهات بنماذج متعددة.
+ابحث عن الشخصيات، تعرّف على أي صورة، وحوّل أفكارك إلى صور بنماذج متعددة.
 </p>
 </div>
 
@@ -261,12 +241,13 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 <option value="pollinations">Pollinations FLUX - بدون حساب (أبطأ)</option>
 </select>
 <p class="text-xs text-slate-500 mt-2">
-نماذج Puter تحتاج حساباً مجانياً على Puter. عند فشل النموذج يتم التحويل تلقائياً إلى Pollinations.
+نماذج Puter تحتاج حساباً مجانياً على Puter (نافذة تسجيل تظهر مرة واحدة). عند فشل النموذج يتم التحويل تلقائياً إلى Pollinations.
 </p>
 </div>
 
 <!-- الأبعاد والعدد -->
 <div class="grid grid-cols-3 gap-3">
+
 <div>
 <label class="text-sm block mb-2">الدقة</label>
 <select id="width" class="field">
@@ -294,6 +275,7 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 <option value="4">4</option>
 </select>
 </div>
+
 </div>
 
 <button id="generateBtn" onclick="generateImage()" class="btn primary w-full text-base">
@@ -378,10 +360,61 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 </section>
 </div>
 
-<!-- استوديو الفيديو -->
+<!-- استوديو الفيديو (مستوحى من Google Flow) -->
 <div id="videoStudio" class="hidden grid lg:grid-cols-12 gap-5">
 
 <section class="lg:col-span-5 glass rounded-2xl p-5 space-y-5">
+
+<div>
+<div class="grid grid-cols-2 gap-2" id="vModes">
+<button class="mode-btn active" data-mode="text">نص إلى فيديو</button>
+<button class="mode-btn" data-mode="frames">إطارات إلى فيديو</button>
+<button class="mode-btn" data-mode="refs">مكوّنات إلى فيديو</button>
+<button class="mode-btn" data-mode="edit">تعديل / تمديد</button>
+</div>
+<p id="vModeHint" class="text-xs text-slate-500 mt-2"></p>
+</div>
+
+<!-- الإطارات -->
+<div id="vFramesBox" class="hidden grid grid-cols-2 gap-3">
+<div>
+<p class="text-xs font-bold mb-1">الإطار الأول</p>
+<div class="drop" style="padding:10px" onclick="$('vFirstInput').click()">
+<img id="vFirstPrev" class="hidden rounded-lg mx-auto max-h-28 object-contain" alt="">
+<span id="vFirstTxt" class="text-xs text-slate-400">اختر صورة</span>
+</div>
+<button class="text-xs text-red-400 mt-1" onclick="clearSlot('first')">إزالة</button>
+</div>
+<div id="vLastWrap">
+<p class="text-xs font-bold mb-1">الإطار الأخير (اختياري)</p>
+<div class="drop" style="padding:10px" onclick="$('vLastInput').click()">
+<img id="vLastPrev" class="hidden rounded-lg mx-auto max-h-28 object-contain" alt="">
+<span id="vLastTxt" class="text-xs text-slate-400">اختر صورة</span>
+</div>
+<button class="text-xs text-red-400 mt-1" onclick="clearSlot('last')">إزالة</button>
+</div>
+<input id="vFirstInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+<input id="vLastInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+</div>
+
+<!-- المكوّنات -->
+<div id="vRefsBox" class="hidden">
+<div class="drop" style="padding:10px" onclick="$('vRefInput').click()">
+<span class="text-xs text-slate-400">أضف صور المكوّنات: شخصيات أو أشياء أو أسلوب</span>
+</div>
+<p id="vRefCount" class="text-xs text-slate-500 mt-1"></p>
+<div id="vRefList" class="flex flex-wrap gap-2 mt-2"></div>
+<input id="vRefInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden">
+</div>
+
+<!-- التعديل والتمديد -->
+<div id="vEditBox" class="hidden space-y-2">
+<div class="drop" style="padding:10px" onclick="$('vEditInput').click()">
+<span id="vEditTxt" class="text-xs text-slate-400">اختر مقطعاً (MP4 أو MOV أو WebM، حتى 32MB)</span>
+</div>
+<button class="btn ghost text-xs w-full" onclick="useCurrentClip()">استخدام المقطع المعروض حالياً</button>
+<input id="vEditInput" type="file" accept="video/mp4,video/quicktime,video/webm" class="hidden">
+</div>
 
 <div>
 <label class="text-sm font-bold block mb-2">المشهد والحركة (بأي لغة)</label>
@@ -402,58 +435,51 @@ placeholder="مثال: محارب يقف على سطح مبنى في مدينة 
 
 <div>
 <label class="text-sm font-bold block mb-2">الحوار (سطر لكل جملة)</label>
-<textarea id="vDialogue" rows="5" class="field" maxlength="1500"
+<textarea id="vDialogue" rows="4" class="field" maxlength="1500"
 placeholder="علي: هل أنت مستعد؟&#10;سارة: دائماً."></textarea>
-<p class="text-xs text-slate-500 mt-2">الصيغة: اسم الشخصية ثم نقطتان ثم الجملة. حتى 8 جمل قصيرة تناسب مدة المقطع.</p>
+<p class="text-xs text-slate-500 mt-2">الصيغة: اسم الشخصية ثم نقطتان ثم الجملة. جمل قصيرة تناسب مدة المقطع.</p>
 </div>
 
 <div>
 <label class="text-sm font-bold block mb-2">لغة الحوار</label>
 <select id="vLang" class="field"></select>
 <input id="vLangOther" class="field mt-2 hidden" maxlength="40" placeholder="اكتب اسم اللغة، مثل: Swahili أو Catalan">
-<p class="text-xs text-slate-500 mt-2">يترجم المساعد الحوار إلى اللغة المختارة. جودة النطق تختلف حسب النموذج، وتكون أفضل في اللغات الكبرى.</p>
+<p class="text-xs text-slate-500 mt-2">يترجم المساعد الحوار إلى اللغة المختارة. جودة النطق تختلف حسب النموذج.</p>
 </div>
 
 <div class="grid grid-cols-2 gap-3">
-<div>
+<div class="col-span-2">
 <label class="text-sm block mb-2 font-bold">النموذج</label>
-<select id="vModel" class="field">
-<option value="google/veo-3.1">Veo 3.1 - أعلى جودة مع صوت</option>
-<option value="google/veo-3.0-fast-audio">Veo 3 Fast - أسرع مع صوت</option>
-<option value="sora-2">Sora 2 - إبداعي مع صوت</option>
-<option value="sora-2-pro">Sora 2 Pro - جودة أعلى</option>
-</select>
+<select id="vModel" class="field"></select>
+<p id="vModelNote" class="text-xs text-slate-500 mt-2"></p>
 </div>
 <div>
 <label class="text-sm block mb-2 font-bold">المدة</label>
-<select id="vDuration" class="field">
-<option value="4">4 ثوان</option>
-<option value="8" selected>8 ثوان</option>
-<option value="12">12 ثانية</option>
-</select>
+<select id="vDuration" class="field"></select>
 </div>
 <div>
 <label class="text-sm block mb-2 font-bold">الأبعاد</label>
-<select id="vRatio" class="field">
-<option value="16:9">أفقي 16:9</option>
-<option value="9:16">عمودي 9:16</option>
-</select>
+<select id="vRatio" class="field"></select>
 </div>
 <div>
 <label class="text-sm block mb-2 font-bold">الدقة</label>
-<select id="vQuality" class="field">
-<option value="720">720p</option>
-<option value="1080">1080p (أغلى)</option>
+<select id="vQuality" class="field"></select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">عدد النسخ</label>
+<select id="vCount" class="field">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="4">4</option>
 </select>
 </div>
 </div>
 
-<input id="vModelCustom" class="field" maxlength="80" placeholder="معرّف نموذج مخصص (اختياري)، يتجاوز القائمة">
-
 <div class="space-y-2 text-sm">
-<label class="flex items-center gap-2"><input id="vAudio" type="checkbox" checked> توليد الصوت والحوار داخل الفيديو</label>
+<label id="vAudioRow" class="flex items-center gap-2"><input id="vAudio" type="checkbox" checked> توليد الصوت والحوار</label>
+<p id="vAudioNote" class="text-xs text-slate-500"></p>
 <label class="flex items-center gap-2"><input id="vSubs" type="checkbox" checked> عرض ترجمة الحوار فوق الفيديو</label>
-<label class="flex items-center gap-2"><input id="vTest" type="checkbox"> وضع التجربة (فيديو عيّنة بدون استهلاك رصيد)</label>
+<label class="flex items-center gap-2"><input id="vTest" type="checkbox"> وضع التجربة (مقطع عيّنة بلا استهلاك رصيد)</label>
 </div>
 
 <div>
@@ -474,12 +500,12 @@ placeholder="يُبنى تلقائياً من المدخلات أعلاه، وي
 
 <section class="lg:col-span-7 space-y-5">
 
-<div class="glass rounded-2xl p-5 min-h-[450px] flex flex-col items-center justify-center text-center">
+<div class="glass rounded-2xl p-5 min-h-[420px] flex flex-col items-center justify-center text-center">
 
 <div id="vEmpty">
 <svg class="ic ic-lg text-indigo-400 mx-auto mb-5"><use href="#i-film"/></svg>
 <h3 class="font-bold text-xl">استوديو الفيديو</h3>
-<p class="text-sm text-slate-500 mt-2">صِف المشهد واكتب الحوار، وسيظهر الفيديو هنا.</p>
+<p class="text-sm text-slate-500 mt-2">اختر نمطاً وصِف المشهد والحوار، وسيظهر المقطع هنا.</p>
 </div>
 
 <div id="vLoading" class="hidden flex-col items-center gap-4">
@@ -490,7 +516,7 @@ placeholder="يُبنى تلقائياً من المدخلات أعلاه، وي
 
 <div id="vError" class="hidden text-red-400 p-5">
 <svg class="ic ic-lg mx-auto mb-3"><use href="#i-alert"/></svg>
-<p id="vErrorMsg"></p>
+<p id="vErrorMsg" class="leading-7"></p>
 <button onclick="generateVideo()" class="btn primary mt-4">إعادة المحاولة</button>
 </div>
 
@@ -500,36 +526,37 @@ placeholder="يُبنى تلقائياً من المدخلات أعلاه، وي
 <div id="vCaption" dir="auto" class="hidden vcap absolute text-center" style="left:12px;right:12px;bottom:56px;pointer-events:none"></div>
 </div>
 <div class="flex flex-wrap justify-center gap-3 mt-5">
-<button onclick="downloadVideo()" class="btn bg-emerald-600"><svg class="ic"><use href="#i-download"/></svg>تحميل الفيديو</button>
-<button onclick="generateVideo()" class="btn bg-indigo-600"><svg class="ic"><use href="#i-refresh"/></svg>توليد نسخة أخرى</button>
+<button onclick="downloadVideo()" class="btn bg-emerald-600"><svg class="ic"><use href="#i-download"/></svg>تحميل المقطع</button>
+<button onclick="generateVideo()" class="btn bg-indigo-600"><svg class="ic"><use href="#i-refresh"/></svg>نسخة أخرى</button>
 </div>
 </div>
 </div>
 
 <div class="glass rounded-2xl p-5">
-<div class="flex justify-between items-center mb-4">
-<h3 class="font-bold flex items-center gap-2"><svg class="ic"><use href="#i-film"/></svg>معرض الفيديوهات</h3>
-<button onclick="clearVideoGallery()" class="text-xs text-red-400 inline-flex items-center gap-1"><svg class="ic"><use href="#i-trash"/></svg>مسح</button>
+<div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+<h3 class="font-bold flex items-center gap-2"><svg class="ic"><use href="#i-film"/></svg>الشريط الزمني للمشاهد</h3>
+<div class="flex gap-4">
+<button onclick="playAll()" class="text-xs text-indigo-300">تشغيل المشاهد بالتسلسل</button>
+<button onclick="clearTimeline()" class="text-xs text-red-400 inline-flex items-center gap-1"><svg class="ic"><use href="#i-trash"/></svg>مسح</button>
 </div>
-<div id="vGallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد فيديوهات بعد.</p>
 </div>
+<div id="vTimeline" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+<p class="text-xs text-slate-500 mt-3 leading-6">روابط المقاطع مؤقتة عند مزوّد الخدمة، فحمّل ما تريد الاحتفاظ به. زر "تمديد" يستخدم المقطع لإكمال المشهد. دمج المشاهد في ملف واحد غير متاح من المتصفح.</p>
 </div>
 
 <div class="glass rounded-2xl p-4 text-xs text-slate-400">
 <h3 class="text-white font-bold mb-2">نصائح لفيديو أوضح</h3>
 <ul class="list-disc pr-5 space-y-1">
 <li>اجعل الحوار قصيراً: جملة أو جملتان لكل 4 إلى 8 ثوان.</li>
-<li>صِف شكل الشخصية ونبرة صوتها، فهذا يثبّت الهوية والصوت.</li>
-<li>جرّب وضع التجربة أولاً للتأكد من الإعداد قبل استهلاك الرصيد.</li>
-<li>الفيديو يستهلك من رصيد حسابك على Puter أكثر بكثير من الصور.</li>
+<li>صِف شكل الشخصية ونبرة صوتها لتثبيت الهوية والصوت.</li>
+<li>لتثبيت شخصية بين المشاهد استخدم "مكوّنات إلى فيديو" بصورتها.</li>
+<li>جرّب وضع التجربة أولاً، فالفيديو يستهلك رصيداً أكثر بكثير من الصور.</li>
 <li>إن لم يُنطق الحوار بوضوح، فالترجمة فوق الفيديو تضمن قراءته.</li>
 </ul>
 </div>
 
 </section>
 </div>
-
 </main>
 
 <footer class="text-center text-xs text-slate-600 py-7">
@@ -539,6 +566,7 @@ Creative Studio AI Ultimate &copy; 2026
 </footer>
 
 <script>
+
 // ======================================
 // المتغيرات العامة
 // ======================================
@@ -581,6 +609,7 @@ const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const ALLOWED_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_GALLERY = 40;
 
+// يقبل https فقط، ويمكن حصره بقائمة نطاقات
 function safeUrl(u, hosts) {
   try {
     const x = new URL(u);
@@ -592,6 +621,7 @@ function safeUrl(u, hosts) {
   }
 }
 
+// تنظيف النصوص: إزالة محارف التحكم وحيل عكس الاتجاه وتحديد الطول
 function clean(s, max) {
   return String(s ?? "")
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u202A-\u202E\u2066-\u2069]/g, "")
@@ -599,6 +629,7 @@ function clean(s, max) {
     .slice(0, max);
 }
 
+// تحديد معدل الطلبات من جهة المتصفح
 const lastCall = {};
 function tooFast(key, ms) {
   const now = Date.now();
@@ -620,12 +651,19 @@ function sanitizeItem(item) {
 
 const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portrait 2:3", "1.778": "wide cinematic 16:9" };
 
+
 // ======================================
-// بوابة الدخول (البريد الإلكتروني + Puter + Google اختياري)
+// تسجيل الدخول بالبريد الإلكتروني (عبر حساب Puter المجاني)
 // ======================================
 
-const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+// اجعلها true لحصر الدخول بحسابات Gmail فقط
+const REQUIRE_GMAIL = false;
+
 let authedUser = null;
+
+function isSignedInNow() {
+  try { return puterReady() && puter.auth.isSignedIn(); } catch (e) { return false; }
+}
 
 function lockApp(message) {
   document.body.classList.add("locked");
@@ -639,120 +677,119 @@ function unlockApp() {
   document.body.classList.remove("locked");
   $("gate").classList.add("hidden");
   $("gMsg").textContent = "";
-  $("gUser").textContent = authedUser.email;
+  $("gUser").textContent = authedUser.label;
   $("gUser").classList.remove("hidden");
   $("gOut").classList.remove("hidden");
 }
 
 function requireAuth() {
-  if (authedUser) return true;
+  if (authedUser && isSignedInNow()) return true;
+  authedUser = null;
   lockApp("سجّل الدخول للمتابعة.");
   return false;
 }
 
-// الدخول عبر إدخال البريد الإلكتروني
-function emailLogin() {
-  const email = clean($("emailInput").value, 120).toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    $("gMsg").textContent = "يرجى إدخال بريد إلكتروني صحيح.";
-    return;
+async function acceptUser() {
+
+  const u = await puter.auth.getUser();
+  const email = String(u?.email || "").toLowerCase();
+
+  if (REQUIRE_GMAIL) {
+    if (!email) throw new Error("NO_EMAIL");
+    if (!/@(gmail|googlemail)\.com$/.test(email)) throw new Error("NOT_GMAIL");
   }
-  authedUser = { email };
-  try { localStorage.setItem("studioUserEmail", email); } catch (e) {}
+
+  authedUser = { label: clean(email || u?.username || "متصل", 60) };
+
   unlockApp();
+
 }
 
-$("emailInput").addEventListener("keydown", e => {
-  if (e.key === "Enter") emailLogin();
-});
+function gateError(e) {
+  return e && e.message === "NOT_GMAIL" ? "يُسمح بحسابات Gmail فقط."
+    : e && e.message === "NO_EMAIL" ? "تعذر التحقق من بريدك الإلكتروني."
+    : "لم يكتمل تسجيل الدخول. حاول مرة أخرى.";
+}
 
-// الدخول عبر حساب Puter
-async function puterGateLogin() {
+async function gateSignIn() {
+
   if (!puterReady()) {
-    $("gMsg").textContent = "تعذر تحميل Puter. تحقق من الإنترنت أو استخدم البريد الإلكتروني أعلاه.";
+    $("gMsg").textContent = "تعذر تحميل خدمة الدخول. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
     return;
   }
+
+  $("gBtn").disabled = true;
+  $("gMsg").textContent = "";
+
   try {
+
     await puter.auth.signIn();
-    const user = await puter.auth.getUser();
-    const label = user?.email || user?.username || "Puter User";
-    authedUser = { email: label };
-    try { localStorage.setItem("studioUserEmail", label); } catch (e) {}
-    refreshAuth();
-    unlockApp();
+    await acceptUser();
+
   } catch (e) {
-    $("gMsg").textContent = "تم إلغاء تسجيل الدخول إلى Puter.";
+
+    authedUser = null;
+    $("gMsg").textContent = gateError(e);
+
+    if (e && (e.message === "NOT_GMAIL" || e.message === "NO_EMAIL")) {
+      try { await puter.auth.signOut(); } catch (err) {}
+    }
+
+  } finally {
+
+    $("gBtn").disabled = false;
+
   }
+
 }
 
-function appSignOut() {
-  try { window.google?.accounts?.id?.disableAutoSelect(); } catch (e) {}
-  try {
-    localStorage.removeItem("studioUserEmail");
-    sessionStorage.removeItem("gToken");
-  } catch (e) {}
+async function signOutApp() {
+
+  try { await puter.auth.signOut(); } catch (e) {}
+
   authedUser = null;
   lockApp("تم تسجيل الخروج.");
-}
 
-function decodeJwt(token) {
-  const part = String(token).split(".")[1];
-  if (!part) throw new Error("BAD_TOKEN");
-  const bin = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
-  const json = decodeURIComponent(
-    bin.split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-  );
-  return JSON.parse(json);
-}
-
-function handleGoogleCredential(response) {
-  try {
-    const p = decodeJwt(response.credential);
-    if (!p.email) throw new Error("NO_EMAIL");
-    authedUser = { email: p.email };
-    try { localStorage.setItem("studioUserEmail", p.email); } catch (e) {}
-    unlockApp();
-  } catch (e) {
-    $("gMsg").textContent = "فشل تسجيل الدخول عبر Google.";
-  }
 }
 
 function initGate() {
-  // استرجاع الجلسة المحفوظة تلقائياً
-  try {
-    const savedEmail = localStorage.getItem("studioUserEmail");
-    if (savedEmail) {
-      authedUser = { email: savedEmail };
-      unlockApp();
-      return;
-    }
-  } catch (e) {}
 
   lockApp();
 
-  // تفعيل زر Google تلقائياً فقط إذا قمت بوضع Client ID حقيقي
-  if (!GOOGLE_CLIENT_ID.startsWith("YOUR_") && location.protocol !== "file:") {
-    let tries = 0;
-    const timer = setInterval(() => {
-      if (window.google?.accounts?.id) {
-        clearInterval(timer);
-        google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredential,
-          auto_select: false
-        });
-        google.accounts.id.renderButton($("gBtn"), {
-          theme: "filled_black", size: "large", text: "signin_with",
-          shape: "pill", locale: "ar", width: 280
-        });
-      } else if (++tries > 40) {
-        clearInterval(timer);
+  let tries = 0;
+
+  const timer = setInterval(async () => {
+
+    if (puterReady()) {
+
+      clearInterval(timer);
+
+      // جلسة سابقة ما زالت صالحة
+      try {
+        if (puter.auth.isSignedIn()) await acceptUser();
+      } catch (e) {
+        authedUser = null;
+        $("gMsg").textContent = gateError(e);
       }
-    }, 250);
-  }
+
+    } else if (++tries > 40) {
+
+      clearInterval(timer);
+      $("gMsg").textContent = "تعذر تحميل خدمة الدخول. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+
+    }
+
+  }, 250);
+
 }
 
 window.addEventListener("load", initGate);
+
+// إعادة القفل إن انتهت الجلسة
+setInterval(() => {
+  if (authedUser && !isSignedInNow()) requireAuth();
+}, 30000);
+
 
 // ======================================
 // Puter: الحساب والمساعد
@@ -788,28 +825,44 @@ window.addEventListener("load", () => setTimeout(refreshAuth, 800));
 
 let chatModel = null;
 
+// اختيار أحدث نموذج Claude متاح في Puter، وإلا النموذج الافتراضي
 async function pickChatModel() {
+
   if (chatModel !== null) return chatModel;
+
   try {
+
     const list = await puter.ai.listModels();
+
     const ids = (list || [])
       .map(m => typeof m === "string" ? m : (m.id || m.name || ""))
       .filter(Boolean);
+
     const claude = ids.filter(i => /claude/i.test(i) && !/haiku/i.test(i));
     const sonnet = claude.filter(i => /sonnet/i.test(i)).sort().reverse();
+
     chatModel = sonnet[0] || claude.sort().reverse()[0] || "";
+
   } catch (e) {
     chatModel = "";
   }
+
   return chatModel;
+
 }
 
 function extractText(res) {
+
   if (typeof res === "string") return res;
+
   const c = res?.message?.content;
+
   if (typeof c === "string") return c;
+
   if (Array.isArray(c)) return c.map(x => x.text || "").join("");
+
   return res ? String(res) : "";
+
 }
 
 function withTimeout(promise, ms) {
@@ -819,29 +872,44 @@ function withTimeout(promise, ms) {
   ]);
 }
 
+// طلب نصي أو بصري إلى المساعد
 async function aiAsk(input, image) {
+
   if (!puterReady()) throw new Error("PUTER_MISSING");
+
   const model = await pickChatModel();
   const opts = model ? { model } : {};
+
   const res = image
     ? await withTimeout(puter.ai.chat(input, image, opts), 120000)
     : await withTimeout(puter.ai.chat(input, opts), 120000);
+
   return extractText(res).trim();
+
 }
 
 function aiJSON(text) {
+
   const m = text.match(/\{[\s\S]*\}/);
+
   if (!m) throw new Error("NO_JSON");
+
   return JSON.parse(m[0]);
+
 }
 
 function aiErrorMessage(e) {
+
   if (e && e.message === "PUTER_MISSING")
     return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+
   if (e && e.message === "TIMEOUT")
     return "انتهت مهلة الانتظار. حاول مرة أخرى.";
-  return "تعذر الاتصال بالمساعد. سجّل الدخول إلى Puter من الأعلى ثم حاول مجدداً.";
+
+  return "تعذر الاتصال بالمساعد. تأكد من اتصالك وحسابك على Puter ثم حاول مجدداً.";
+
 }
+
 
 // ======================================
 // اختيار الأسلوب
@@ -854,6 +922,7 @@ document.querySelectorAll(".style").forEach(button => {
     selectedStyle = button.dataset.style;
   });
 });
+
 
 // ======================================
 // البحث الشامل عن الشخصيات
@@ -872,6 +941,7 @@ function cleanText(t) {
 }
 
 async function searchAniList(q) {
+
   const query = `query($s:String){Page(perPage:10){characters(search:$s){
 name{full native} image{medium} description(asHtml:false) siteUrl
 media(perPage:1){nodes{title{romaji english}}}}}}`;
@@ -883,6 +953,7 @@ media(perPage:1){nodes{title{romaji english}}}}}}`;
   });
 
   if (!r.ok) throw new Error("AniList");
+
   const d = await r.json();
 
   return (d.data?.Page?.characters || []).map(c => {
@@ -896,13 +967,17 @@ media(perPage:1){nodes{title{romaji english}}}}}}`;
       url: c.siteUrl
     };
   });
+
 }
 
 async function searchJikan(q) {
+
   const r = await fetch(
     `https://api.jikan.moe/v4/characters?q=${encodeURIComponent(q)}&limit=10&order_by=favorites&sort=desc`
   );
+
   if (!r.ok) throw new Error("Jikan");
+
   const d = await r.json();
 
   return (d.data || []).map(c => ({
@@ -913,9 +988,11 @@ async function searchJikan(q) {
     description: cleanText(c.about),
     url: c.url
   }));
+
 }
 
 async function searchWiki(lang, q) {
+
   const url =
     `https://${lang}.wikipedia.org/w/api.php?action=query&generator=search` +
     `&gsrsearch=${encodeURIComponent(q)}&gsrlimit=6` +
@@ -923,7 +1000,9 @@ async function searchWiki(lang, q) {
     `&piprop=thumbnail&pithumbsize=120&format=json&origin=*`;
 
   const r = await fetch(url);
+
   if (!r.ok) throw new Error("Wikipedia " + lang);
+
   const d = await r.json();
 
   return Object.values(d.query?.pages || {})
@@ -936,10 +1015,13 @@ async function searchWiki(lang, q) {
       description: cleanText(pg.extract),
       url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(pg.title.replace(/ /g, "_"))}`
     }));
+
 }
 
 async function searchCharacter(overrideQuery) {
+
   if (!requireAuth()) return;
+
   const query = clean(typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value, 120);
 
   if (!query) {
@@ -977,6 +1059,7 @@ async function searchCharacter(overrideQuery) {
   }
 
   results.forEach(item => {
+
     const btn = document.createElement("button");
     btn.className = "card w-full p-2 text-right text-sm hover:border-indigo-500 flex items-center gap-3";
 
@@ -1005,10 +1088,13 @@ async function searchCharacter(overrideQuery) {
     btn.onclick = () => showCharacter(item);
 
     $("characterResults").appendChild(btn);
+
   });
+
 }
 
 function showCharacter(item) {
+
   selectedCharacter = {
     name: item.title,
     series: item.subtitle,
@@ -1037,10 +1123,13 @@ function showCharacter(item) {
   } else {
     $("characterImage").classList.add("hidden");
   }
+
 }
 
 function useCharacter() {
+
   if (!selectedCharacter) return;
+
   const details = selectedCharacter.description.slice(0, 400);
 
   $("prompt").value =
@@ -1051,14 +1140,18 @@ function useCharacter() {
     `Detailed face, accurate anatomy.`;
 
   $("prompt").focus();
+
 }
 
+
 // ======================================
-// البحث الذكي
+// البحث الذكي (المساعد يستنتج الاسم من الوصف)
 // ======================================
 
 function showChips(names) {
+
   $("smartChips").innerHTML = "";
+
   names.forEach(n => {
     const c = document.createElement("button");
     c.className = "chip";
@@ -1066,10 +1159,13 @@ function showChips(names) {
     c.onclick = () => searchCharacter(n);
     $("smartChips").appendChild(c);
   });
+
 }
 
 async function smartSearch() {
+
   if (!requireAuth()) return;
+
   const text = clean($("characterSearch").value, 300);
 
   if (!text) {
@@ -1083,6 +1179,7 @@ async function smartSearch() {
   $("smartChips").innerHTML = '<span class="text-xs text-indigo-300">المساعد يحلل طلبك...</span>';
 
   try {
+
     const answer = await aiAsk(
       "The user describes a fictional character, anime, game, or public work they want to find (any language). " +
       "Reply ONLY with JSON: {\"names\":[\"up to 4 most likely English names, best first\"]}. " +
@@ -1090,73 +1187,108 @@ async function smartSearch() {
     );
 
     const names = (aiJSON(answer).names || []).slice(0, 4).map(n => clean(n, 80)).filter(Boolean);
+
     if (!names.length) throw new Error("NO_NAMES");
 
     showChips(names);
     searchCharacter(names[0]);
+
   } catch (e) {
+
     $("smartChips").innerHTML = "";
     $("characterResults").textContent = aiErrorMessage(e);
+
   } finally {
+
     $("smartBtn").disabled = false;
+
   }
+
 }
+
 
 // ======================================
 // البحث بالصورة
 // ======================================
 
+// تصغير الصورة قبل إرسالها للتحليل لتسريع الطلب
 function fileToDataUrl(file, maxSide = 1024) {
+
   return new Promise((resolve, reject) => {
+
     const reader = new FileReader();
+
     reader.onerror = () => reject(new Error("read"));
+
     reader.onload = () => {
+
       const img = new Image();
+
       img.onerror = () => reject(new Error("decode"));
+
       img.onload = () => {
+
         const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
         const canvas = document.createElement("canvas");
+
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
+
         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+
         resolve(canvas.toDataURL("image/jpeg", 0.88));
+
       };
+
       img.src = reader.result;
+
     };
+
     reader.readAsDataURL(file);
+
   });
+
 }
 
 async function setUploaded(file) {
+
   if (!file || !ALLOWED_UPLOAD_TYPES.includes(file.type)) {
     alert("الأنواع المسموحة: JPG, PNG, WEBP, GIF.");
     return;
   }
+
   if (file.size > MAX_UPLOAD_BYTES) {
     alert("حجم الصورة كبير. الحد الأقصى 15 ميجابايت.");
     return;
   }
+
   uploadedFile = file;
+
   try {
     uploadedDataUrl = await fileToDataUrl(file);
   } catch (e) {
     alert("تعذر قراءة الصورة.");
     return;
   }
+
   $("uploadPreview").src = uploadedDataUrl;
   $("uploadBox").classList.remove("hidden");
   $("identifyResult").innerHTML = "";
+
 }
 
 $("fileInput").addEventListener("change", e => setUploaded(e.target.files[0]));
 
 const drop = $("dropZone");
+
 ["dragenter", "dragover"].forEach(ev =>
   drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); })
 );
+
 ["dragleave", "drop"].forEach(ev =>
   drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); })
 );
+
 drop.addEventListener("drop", e => setUploaded(e.dataTransfer.files[0]));
 
 document.addEventListener("paste", e => {
@@ -1185,13 +1317,16 @@ function escapeHtml(s) {
 }
 
 async function identifyImage() {
+
   if (!requireAuth()) return;
+
   if (!uploadedDataUrl || tooFast("identify", 3000)) return;
 
   $("identifyResult").innerHTML = "";
   setIdentifyLoading(true, "المساعد يحلل الصورة...");
 
   try {
+
     const answer = await aiAsk(
       "Look at this image and reply ONLY with JSON: " +
       "{\"description\":\"2-3 sentence description in Arabic\"," +
@@ -1232,25 +1367,35 @@ async function identifyImage() {
       b.onclick = () => { $("prompt").value = clean(data.image_prompt, 1200); $("prompt").focus(); };
       box.appendChild(b);
     }
+
   } catch (e) {
+
     addInfoBox(`<p class="text-red-400">${escapeHtml(aiErrorMessage(e))}</p>`);
+
   } finally {
+
     setIdentifyLoading(false);
+
   }
+
 }
 
 async function traceAnime() {
+
   if (!requireAuth()) return;
+
   if (!uploadedFile || tooFast("trace", 3000)) return;
 
   $("identifyResult").innerHTML = "";
   setIdentifyLoading(true, "جاري البحث عن مصدر المشهد...");
 
   try {
+
     const fd = new FormData();
     fd.append("image", uploadedFile);
 
     const r = await withTimeout(fetch("https://api.trace.moe/search?anilistInfo", { method: "POST", body: fd }), 60000);
+
     if (!r.ok) throw new Error("HTTP " + r.status);
 
     const d = await r.json();
@@ -1262,6 +1407,7 @@ async function traceAnime() {
     }
 
     list.forEach(item => {
+
       const t = item.anilist?.title || {};
       const title = clean(t.english || t.romaji || t.native || "غير معروف", 150);
       const thumb = safeUrl(item.image);
@@ -1282,20 +1428,30 @@ async function traceAnime() {
       b.textContent = "ابحث عن شخصيات هذا العمل";
       b.onclick = () => searchCharacter(title);
       box.appendChild(b);
+
     });
+
   } catch (e) {
+
     addInfoBox('<p class="text-red-400">تعذر الاتصال بخدمة trace.moe أو تم تجاوز الحد المسموح. حاول لاحقاً.</p>');
+
   } finally {
+
     setIdentifyLoading(false);
+
   }
+
 }
+
 
 // ======================================
 // تحسين الوصف بالمساعد
 // ======================================
 
 async function enhancePrompt() {
+
   if (!requireAuth()) return;
+
   const text = clean($("prompt").value, 1200);
 
   if (!text) {
@@ -1308,81 +1464,118 @@ async function enhancePrompt() {
   $("enhanceBtn").disabled = true;
 
   try {
+
     const style = STYLE_PROMPTS[selectedStyle] || selectedStyle;
+
     const answer = await aiAsk(
       "Rewrite the idea below as one detailed English prompt for an AI image generator. " +
       "Describe subject, pose, clothing, camera angle, lighting, colors, background and mood. " +
       "Preferred style: " + style + ". Keep it under 120 words. Reply with the prompt only. Idea: " + text
     );
+
     if (answer) $("prompt").value = clean(answer.replace(/^["'\s]+|["'\s]+$/g, ""), 1200);
+
   } catch (e) {
+
     alert(aiErrorMessage(e));
+
   } finally {
+
     $("enhanceBtn").disabled = false;
+
   }
+
 }
+
 
 // ======================================
 // توليد الصور
 // ======================================
 
 function buildPollinationsUrl(fullPrompt, width, height, seed) {
+
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}` +
     `?width=${width}&height=${height}&seed=${seed}` +
     `&model=flux&nologo=true` +
     `&negative_prompt=${encodeURIComponent(NEGATIVE_PROMPT)}`;
+
 }
 
 async function fetchImageBlob(url) {
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180000);
 
   try {
+
     const response = await fetch(url, { signal: controller.signal });
+
     if (response.status === 429 || response.status >= 500) {
       const err = new Error("busy");
       err.retryable = true;
       throw err;
     }
+
     if (!response.ok) throw new Error("HTTP " + response.status);
+
     const blob = await response.blob();
+
     if (!blob.type.startsWith("image/")) {
       const err = new Error("not image");
       err.retryable = true;
       throw err;
     }
+
     return URL.createObjectURL(blob);
+
   } finally {
     clearTimeout(timer);
   }
+
 }
 
 function loadViaImgTag(url) {
+
   return new Promise((resolve, reject) => {
+
     const img = new Image();
     const timer = setTimeout(() => reject(new Error("timeout")), 180000);
+
     img.onload = () => { clearTimeout(timer); resolve(url); };
     img.onerror = () => { clearTimeout(timer); reject(new Error("load failed")); };
+
     img.referrerPolicy = "no-referrer";
     img.src = url;
+
   });
+
 }
 
 async function generateViaPollinations(fullPrompt, width, height, thisRequest) {
+
   const seed = Math.floor(Math.random() * 999999999);
   const url = buildPollinationsUrl(fullPrompt, width, height, seed);
+
   let lastError = null;
 
   for (let attempt = 1; attempt <= 3; attempt++) {
+
     if (thisRequest !== requestNumber) throw new Error("CANCELLED");
+
     try {
+
       if (attempt > 1) $("loadingMessage").textContent = `الخدمة مشغولة، إعادة المحاولة ${attempt}/3...`;
+
       return await fetchImageBlob(url);
+
     } catch (error) {
+
       lastError = error;
+
       if (error instanceof TypeError) {
         return await loadViaImgTag(url);
       }
+
       if (error.retryable && attempt < 3) {
         for (let s = 16; s > 0; s--) {
           $("loadingMessage").textContent = `الخدمة المجانية مشغولة. إعادة المحاولة بعد ${s} ثانية...`;
@@ -1390,29 +1583,45 @@ async function generateViaPollinations(fullPrompt, width, height, thisRequest) {
         }
         continue;
       }
+
       break;
+
     }
+
   }
+
   throw lastError || new Error("failed");
+
 }
 
 async function generateViaPuter(model, fullPrompt) {
+
   if (!puterReady()) throw new Error("PUTER_MISSING");
+
   const aspect = ASPECT_TEXT[$("ratio").value] || "square 1:1";
+
   const el = await withTimeout(
     puter.ai.txt2img(`${fullPrompt}, ${aspect} composition`, { model }),
     180000
   );
+
   const src = el?.src;
+
+  // المسموح: صور base64 أو blob أو رابط https فقط
   if (!src || !/^(data:image\/(png|jpeg|webp|gif);base64,|blob:|https:)/.test(src)) throw new Error("EMPTY");
+
   return src;
+
 }
 
 async function generateImage() {
+
   if (!requireAuth()) return;
+
   if (isGenerating) return;
 
   const prompt = clean($("prompt").value, 1200);
+
   if (!prompt) {
     alert("اكتب وصف الصورة أولاً.");
     return;
@@ -1441,26 +1650,40 @@ async function generateImage() {
 
   let done = 0;
   let lastError = null;
+  let usedFallback = false;
 
   for (let i = 1; i <= count; i++) {
+
     if (thisRequest !== requestNumber) return;
+
     $("loadingMessage").textContent = count > 1 ? `جاري إنشاء الصورة ${i} من ${count}...` : "جاري إنشاء الصورة...";
+
     let url = null;
 
     try {
+
       if (engine.startsWith("puter:")) {
+
         try {
           url = await generateViaPuter(engine.slice(6), fullPrompt);
         } catch (e) {
+          // تحويل تلقائي إلى المحرك المجاني
+          usedFallback = true;
           $("loadingMessage").textContent = "تعذر نموذج Puter، التحويل إلى Pollinations...";
           url = await generateViaPollinations(fullPrompt, width, height, thisRequest);
         }
+
       } else {
+
         url = await generateViaPollinations(fullPrompt, width, height, thisRequest);
+
       }
+
     } catch (e) {
+
       lastError = e;
       break;
+
     }
 
     if (thisRequest !== requestNumber) return;
@@ -1478,6 +1701,7 @@ async function generateImage() {
 
     renderGallery();
     done++;
+
   }
 
   if (thisRequest !== requestNumber) return;
@@ -1488,26 +1712,34 @@ async function generateImage() {
   $("loadingState").classList.remove("flex");
 
   if (!done) {
+
     $("errorState").classList.remove("hidden");
+
     $("errorMessage").textContent =
       lastError && lastError.message === "TIMEOUT"
         ? "انتهت مهلة الانتظار. جرب محركاً آخر أو حاول لاحقاً."
-        : "تعذر توليد الصورة. سجّل الدخول إلى Puter من الأعلى أو جرب محرك Pollinations.";
+        : "تعذر توليد الصورة. تحقق من رصيد حسابك على Puter أو جرب محرك Pollinations.";
+
   }
+
 }
+
 
 // ======================================
 // المعرض والتحميل
 // ======================================
 
 function renderGallery() {
+
   $("gallery").innerHTML = "";
+
   if (!gallery.length) {
     $("gallery").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد صور بعد.</p>';
     return;
   }
 
   gallery.forEach(item => {
+
     const card = document.createElement("div");
     card.className = "card";
 
@@ -1537,14 +1769,19 @@ function renderGallery() {
     content.append(text, button);
     card.append(img, content);
     $("gallery").appendChild(card);
+
   });
+
 }
 
 async function downloadImage() {
+
   if (!currentImage) return;
+
   let href = currentImage;
   let temp = null;
 
+  // الروابط الخارجية تُحوَّل إلى blob ليعمل التحميل مباشرة
   if (!/^(blob:|data:)/.test(href)) {
     try {
       const r = await fetch(href);
@@ -1564,16 +1801,22 @@ async function downloadImage() {
   link.remove();
 
   if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
+
 }
 
 function clearGallery() {
+
   if (!confirm("هل تريد مسح جميع الصور من المعرض؟")) return;
+
   gallery.forEach(item => {
     if (item.url.startsWith("blob:")) URL.revokeObjectURL(item.url);
   });
+
   gallery = [];
   renderGallery();
+
 }
+
 
 // ======================================
 // التبويبات
@@ -1587,8 +1830,9 @@ function switchTab(tab) {
   $("tabVideo").className = "btn " + (isVideo ? "primary" : "ghost");
 }
 
+
 // ======================================
-// استوديو الفيديو
+// استوديو الفيديو (مستوحى من Google Flow)
 // ======================================
 
 const VIDEO_STYLES = [
@@ -1614,6 +1858,7 @@ const VIDEO_CAMERAS = [
   ["crane", "رفع كرين", "crane shot rising up"]
 ];
 
+// [الرمز، الاسم المعروض، الاسم بالإنجليزية للمساعد]
 const VIDEO_LANGS = [
   ["auto", "كما كتبته (بدون ترجمة)", ""],
   ["ar", "العربية", "Arabic"], ["en", "English", "English"], ["es", "Español", "Spanish"],
@@ -1638,25 +1883,384 @@ function fillSelect(id, rows) {
   });
 }
 
+// ---- جدول النماذج (من توثيق Puter الرسمي لـ txt2vid) ----
+// audio: always = مدمج دائماً، optional = يُرسل generate_audio، none = بلا صوت
+// tiers: درجات الدقة بالبكسل للجانب الأقصر، null = افتراضية (لا يُرسل size)
+const RATIOS_ALL = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"];
+
+const VMODELS = [
+  { key: "veo31", label: "Veo 3.1 (جودة سينمائية)", id: "google/veo-3.1",
+    dur: [4, 6, 8], ddef: 8, tiers: null, ratios: ["16:9"], audio: "always",
+    modes: ["text", "frames"], last: true, maxRefs: 0,
+    note: "أعلى جودة مع صوت وحوار مدمجين. الأبعاد والدقة يحددها النموذج." },
+  { key: "veo31lite", label: "Veo 3.1 Lite (سريع)", id: "google/veo-3.1-lite",
+    dur: [4, 6, 8], ddef: 8, tiers: null, ratios: ["16:9"], audio: "always",
+    modes: ["text", "frames"], last: true, maxRefs: 0,
+    note: "نسخة أسرع وأخف من Veo 3.1 مع صوت مدمج." },
+  { key: "seedance25", label: "Seedance 2.5", id: "seedance-2-5",
+    dur: [4, 5, 6, 8, 10, 12, 15, 20, 30], ddef: 5, tiers: [720, 480, 1080], ratios: RATIOS_ALL, audio: "optional",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 30,
+    note: "واقعية عالية وتحكم دقيق بالمكوّنات (حتى 30 صورة) ومقاطع طويلة." },
+  { key: "seedance2mini", label: "Seedance 2.0 Mini (اقتصادي)", id: "seedance-2-0-mini",
+    dur: [4, 5, 6, 8, 10, 12, 15], ddef: 5, tiers: [720, 480], ratios: RATIOS_ALL, audio: "optional",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 9,
+    note: "خيار اقتصادي سريع للتجارب، يقبل حتى 9 صور مكوّنات." },
+  { key: "kling4", label: "Kling 4.0", id: "kling-4.0",
+    dur: [3, 5, 8, 10, 15, 20, 30], ddef: 5, tiers: [720, 1080], ratios: ["16:9", "9:16", "1:1"], audio: "always",
+    modes: ["text", "frames"], last: true, maxRefs: 0,
+    note: "حركة طبيعية وصوت مدمج ومقاطع تصل إلى 30 ثانية." },
+  { key: "kling3omni", label: "Kling 3.0 Omni", id: "kling-3.0-omni",
+    dur: [3, 5, 8, 10, 15], ddef: 5, tiers: [720, 1080], ratios: ["16:9", "9:16", "1:1"], audio: "optional",
+    modes: ["text", "frames", "refs", "edit"], last: true, maxRefs: 7,
+    note: "يعدّل مقطعاً موجوداً (MP4 أو MOV من 3 إلى 15 ثانية) ويقبل 7 صور مكوّنات." },
+  { key: "wan27", label: "Wan 2.7", idByMode: { text: "wan-ai/wan2.7-t2v", frames: "wan-ai/wan2.7-i2v", refs: "wan-ai/wan2.7-r2v" },
+    dur: [2, 3, 5, 8, 10, 15], ddef: 5, tiers: [720, 1080], ratios: ["16:9", "9:16", "1:1", "4:3", "3:4"], audio: "always",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 5,
+    note: "نموذج مفتوح بتكلفة منخفضة نسبياً مع صوت مولَّد. في المكوّنات حتى 10 ثوان." },
+  { key: "minimax", label: "MiniMax H3", id: "minimax-h3",
+    dur: [4, 5, 6, 8, 10, 12, 15], ddef: 5, tiers: [768], ratios: ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], audio: "always",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 5,
+    note: "جودة جيدة وصوت مدمج ويقبل حتى 5 صور مرجعية." },
+  { key: "omni", label: "Gemini Omni (تعديل وتمديد)", id: "gemini-omni-1.1-flash",
+    dur: null, ddef: 0, tiers: null, named: ["720p", "1080p", "360p", "4k"], ratios: ["16:9", "9:16"], audio: "none",
+    modes: ["text", "frames", "edit"], last: false, maxRefs: 0,
+    note: "يحدد طول المقطع بنفسه. ممتاز لتعديل أو تمديد مقطع (حتى 10 ثوان)، لكنه مكلف نسبياً." }
+];
+
+const OMNI_SIZES = {
+  "360p": ["640x360", "360x640"], "720p": ["1280x720", "720x1280"],
+  "1080p": ["1920x1080", "1080x1920"], "4k": ["3840x2160", "2160x3840"]
+};
+
+// الجانب الأقصر = درجة الدقة، والنسبة من الأبعاد
+function pixelSize(tier, ratio) {
+  const [a, b] = ratio.split(":").map(Number);
+  let w, h;
+  if (a >= b) { h = tier; w = tier * a / b; } else { w = tier; h = tier * b / a; }
+  return `${Math.round(w / 2) * 2}x${Math.round(h / 2) * 2}`;
+}
+
+function buildVideoOptions(m, st) {
+
+  const o = { model: m.idByMode ? m.idByMode[st.mode] : m.id };
+
+  if (m.dur) {
+    let sec = st.seconds || m.ddef;
+    if (m.key === "wan27" && st.mode === "refs") sec = Math.min(sec, 10);
+    o.seconds = sec;
+  }
+
+  if (m.key === "omni") {
+    const pair = OMNI_SIZES[st.tier];
+    if (pair) o.size = pair[st.ratio === "9:16" ? 1 : 0];
+  } else if (m.tiers) {
+    o.size = pixelSize(Number(st.tier) || m.tiers[0], st.ratio || "16:9");
+  }
+
+  if (m.audio === "optional") o.generate_audio = !!st.audio;
+
+  if (st.mode === "frames") {
+    o.input_reference = st.first;
+    if (st.last && m.last) o.last_frame = st.last;
+  }
+
+  if (st.mode === "refs") o.reference_images = st.refs;
+
+  if (st.mode === "edit") o.inputVideo = st.edit;
+
+  if (st.test) o.test_mode = true;
+
+  return o;
+
+}
+
+const MODE_HINTS = {
+  text: "صِف المشهد والحوار وسيُنتج المقطع من الصفر.",
+  frames: "ارفع الإطار الأول (والأخير اختيارياً) وصِف الحركة بينهما.",
+  refs: "ارفع صور شخصيات أو أشياء أو أسلوب، والنموذج يحافظ عليها في المقطع.",
+  edit: "ارفع مقطعاً قصيراً أو استخدم مقطعاً من الشريط، ثم صِف التعديل أو اطلب إكمال المشهد."
+};
+
+const MODE_PROMPT_EN = {
+  text: "Text-to-video.",
+  frames: "Frames-to-video: the first frame image (and optionally a last frame) is supplied separately. Describe the motion, camera move and dialogue that bring the first frame to life, and do not re-describe the static image in detail.",
+  refs: "Ingredients-to-video: reference images of subjects or style are supplied separately. Refer to them as the characters or objects and keep them consistent.",
+  edit: "Video edit or extend: an existing clip is supplied. Describe only the change, or how the scene continues."
+};
+
 fillSelect("vStyle", VIDEO_STYLES);
 fillSelect("vCamera", VIDEO_CAMERAS);
 fillSelect("vLang", VIDEO_LANGS);
 
+let vMode = "text";
+let vFirst = null, vLast = null, vRefs = [], vEdit = null;
 let vCaptions = null;
+let currentCaptions = [];
 let isVideoGenerating = false;
-let videoGallery = [];
+let timeline = [];
+let playAllIdx = -1;
 let vTimer = null;
 
+function currentVModel() {
+  return VMODELS.find(m => m.key === $("vModel").value) || VMODELS[0];
+}
+
+function fillOptions(id, rows, selected) {
+  const el = $(id);
+  el.innerHTML = "";
+  rows.forEach(r => {
+    const o = document.createElement("option");
+    o.value = String(r[0]);
+    o.textContent = r[1];
+    el.appendChild(o);
+  });
+  if (selected !== undefined && rows.some(r => String(r[0]) === String(selected))) el.value = String(selected);
+}
+
+function refreshVideoModels() {
+
+  const prev = $("vModel").value;
+  const list = VMODELS.filter(m => m.modes.includes(vMode));
+
+  fillOptions("vModel", list.map(m => [m.key, m.label]), prev);
+
+  refreshVideoSettings();
+
+}
+
+function refreshVideoSettings() {
+
+  const m = currentVModel();
+
+  // المدة
+  if (m.dur) {
+    fillOptions("vDuration", m.dur.map(d => [d, d + " ثانية"]), $("vDuration").value || m.ddef);
+    if (!m.dur.map(String).includes($("vDuration").value)) $("vDuration").value = String(m.ddef);
+    $("vDuration").disabled = false;
+  } else {
+    fillOptions("vDuration", [["0", "يحددها النموذج"]]);
+    $("vDuration").disabled = true;
+  }
+
+  // الدقة
+  if (m.tiers) {
+    fillOptions("vQuality", m.tiers.map(t => [t, t + "p"]), $("vQuality").value);
+    $("vQuality").disabled = false;
+  } else if (m.named) {
+    fillOptions("vQuality", m.named.map(t => [t, t]), $("vQuality").value);
+    $("vQuality").disabled = false;
+  } else {
+    fillOptions("vQuality", [["", "يحددها النموذج"]]);
+    $("vQuality").disabled = true;
+  }
+
+  // الأبعاد
+  fillOptions("vRatio", m.ratios.map(r => [r, r]), $("vRatio").value);
+
+  // الصوت
+  $("vAudioRow").classList.toggle("hidden", m.audio !== "optional");
+  $("vAudioNote").textContent =
+    m.audio === "always" ? "الصوت والحوار مدمجان دائماً في هذا النموذج."
+    : m.audio === "none" ? "هذا النموذج لا يولّد صوتاً."
+    : "";
+
+  // الإطار الأخير
+  $("vLastWrap").classList.toggle("hidden", !m.last);
+  if (!m.last) clearSlot("last");
+
+  // المكوّنات
+  while (vRefs.length > m.maxRefs) vRefs.pop();
+  renderRefs();
+
+  $("vModelNote").textContent = m.note || "";
+
+}
+
+function setVideoMode(mode) {
+
+  vMode = mode;
+
+  document.querySelectorAll("#vModes .mode-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.mode === mode)
+  );
+
+  $("vFramesBox").classList.toggle("hidden", mode !== "frames");
+  $("vRefsBox").classList.toggle("hidden", mode !== "refs");
+  $("vEditBox").classList.toggle("hidden", mode !== "edit");
+  $("vModeHint").textContent = MODE_HINTS[mode];
+
+  refreshVideoModels();
+
+}
+
+document.querySelectorAll("#vModes .mode-btn").forEach(b =>
+  b.addEventListener("click", () => setVideoMode(b.dataset.mode))
+);
+
+$("vModel").addEventListener("change", refreshVideoSettings);
+
+// أي تغيير في المدخلات يلغي الوصف المبني سابقاً
 ["vScene", "vDialogue", "vLang", "vStyle", "vCamera", "vLangOther"].forEach(id => {
-  $(id).addEventListener("input", () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; });
-  $(id).addEventListener("change", () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; });
+  const reset = () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; };
+  $(id).addEventListener("input", reset);
+  $(id).addEventListener("change", reset);
 });
 
 $("vLang").addEventListener("change", () => {
   $("vLangOther").classList.toggle("hidden", $("vLang").value !== "other");
 });
 
+
+// ---- رفع الصور والفيديو ----
+
+function setSlot(which, url) {
+
+  const first = which === "first";
+  const prev = $(first ? "vFirstPrev" : "vLastPrev");
+  const txt = $(first ? "vFirstTxt" : "vLastTxt");
+
+  if (url) {
+    prev.src = url;
+    prev.classList.remove("hidden");
+    txt.classList.add("hidden");
+  } else {
+    prev.removeAttribute("src");
+    prev.classList.add("hidden");
+    txt.classList.remove("hidden");
+  }
+
+}
+
+function clearSlot(which) {
+  if (which === "first") vFirst = null; else vLast = null;
+  setSlot(which, null);
+}
+
+async function readImage(file) {
+
+  if (!file || !ALLOWED_UPLOAD_TYPES.includes(file.type)) {
+    alert("الأنواع المسموحة: JPG, PNG, WEBP, GIF.");
+    return null;
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    alert("حجم الصورة كبير. الحد الأقصى 15 ميجابايت.");
+    return null;
+  }
+
+  try {
+    return await fileToDataUrl(file, 1280);
+  } catch (e) {
+    alert("تعذر قراءة الصورة.");
+    return null;
+  }
+
+}
+
+async function loadSlot(which, file) {
+  const url = await readImage(file);
+  if (!url) return;
+  if (which === "first") vFirst = url; else vLast = url;
+  setSlot(which, url);
+}
+
+$("vFirstInput").addEventListener("change", e => { loadSlot("first", e.target.files[0]); e.target.value = ""; });
+$("vLastInput").addEventListener("change", e => { loadSlot("last", e.target.files[0]); e.target.value = ""; });
+
+function renderRefs() {
+
+  const m = currentVModel();
+
+  $("vRefList").innerHTML = "";
+  $("vRefCount").textContent = m.maxRefs ? `${vRefs.length} من ${m.maxRefs} صور` : "هذا النموذج لا يقبل صور مكوّنات.";
+
+  vRefs.forEach((url, i) => {
+
+    const box = document.createElement("div");
+    box.className = "relative";
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "";
+    img.style.cssText = "width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #29334c";
+
+    const x = document.createElement("button");
+    x.textContent = "×";
+    x.className = "absolute text-xs bg-red-600 rounded-full";
+    x.style.cssText = "top:-6px;left:-6px;width:18px;height:18px;line-height:18px";
+    x.onclick = () => { vRefs.splice(i, 1); renderRefs(); };
+
+    box.append(img, x);
+    $("vRefList").appendChild(box);
+
+  });
+
+}
+
+$("vRefInput").addEventListener("change", async e => {
+
+  const m = currentVModel();
+  const files = [...e.target.files];
+
+  e.target.value = "";
+
+  for (const f of files) {
+    if (vRefs.length >= m.maxRefs) {
+      alert(`الحد الأقصى لهذا النموذج ${m.maxRefs} صور.`);
+      break;
+    }
+    const url = await readImage(f);
+    if (url) vRefs.push(url);
+  }
+
+  renderRefs();
+
+});
+
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+
+$("vEditInput").addEventListener("change", e => {
+
+  const f = e.target.files[0];
+
+  e.target.value = "";
+
+  if (!f) return;
+
+  if (!ALLOWED_VIDEO_TYPES.includes(f.type)) {
+    alert("الأنواع المسموحة: MP4 أو MOV أو WebM.");
+    return;
+  }
+
+  if (f.size > 32 * 1024 * 1024) {
+    alert("حجم الفيديو كبير. الحد الأقصى 32 ميجابايت.");
+    return;
+  }
+
+  vEdit = f;
+  $("vEditTxt").textContent = clean(f.name, 60);
+
+});
+
+function useCurrentClip() {
+
+  const src = $("vPlayer").getAttribute("src");
+
+  if (!src) {
+    alert("لا يوجد مقطع معروض حالياً.");
+    return;
+  }
+
+  vEdit = src;
+  $("vEditTxt").textContent = "المقطع المعروض حالياً";
+
+}
+
+
+// ---- المدخلات والوصف ----
+
 function parseDialogue(raw) {
+
   return clean(raw, 1500)
     .split(/\n+/)
     .map(l => l.trim())
@@ -1669,13 +2273,17 @@ function parseDialogue(raw) {
         : { name: "", text: clean(l, 220) };
     })
     .filter(x => x.text);
+
 }
 
 function videoInputs() {
+
   const style = VIDEO_STYLES.find(x => x[0] === $("vStyle").value) || VIDEO_STYLES[0];
   const cam = VIDEO_CAMERAS.find(x => x[0] === $("vCamera").value) || VIDEO_CAMERAS[0];
   const lang = VIDEO_LANGS.find(x => x[0] === $("vLang").value);
+
   let langEn = lang ? lang[2] : "";
+
   if ($("vLang").value === "other") langEn = clean($("vLangOther").value, 40);
 
   return {
@@ -1686,23 +2294,37 @@ function videoInputs() {
     langEn,
     audio: $("vAudio").checked
   };
+
 }
 
-function buildLocalVideoPrompt(inp) {
-  let p = `${inp.style}. ${inp.scene || "A cinematic scene"}. Camera: ${inp.camera}.`;
+function buildLocalVideoPrompt(inp, mode) {
+
+  let p = "";
+
+  if (mode === "frames") p += "Starting from the provided first frame, bring it to life. ";
+  if (mode === "refs") p += "Use the provided reference images as the characters, objects and style, keeping them consistent. ";
+  if (mode === "edit") p += "Edit the provided video: ";
+
+  p += `${inp.style}. ${inp.scene || "A cinematic scene"}. Camera: ${inp.camera}.`;
+
   if (inp.lines.length) {
     p += " The characters speak aloud on camera with clear, natural, lip-synced voices: " +
       inp.lines.map(l => `${l.name ? l.name + " says" : "Says"}: "${l.text}"`).join(" ") + ".";
   } else if (inp.audio) {
     p += " Rich ambient sound design.";
   }
+
   p += " Sharp, high detail, smooth natural motion, consistent characters, no on-screen text, no watermark.";
+
   return { prompt: clean(p, 2500), captions: inp.lines };
+
 }
 
-async function buildVideoPromptAI(inp) {
+async function buildVideoPromptAI(inp, mode) {
+
   const answer = await aiAsk(
-    "You are an expert prompt engineer for text-to-video models with native synchronized audio (Veo, Sora). " +
+    "You are an expert prompt engineer for text-to-video models with native synchronized audio (Veo, Seedance, Kling). " +
+    MODE_PROMPT_EN[mode] + " " +
     "Create ONE vivid English video prompt from the data below. Include: visual style, characters (age, look, voice tone), " +
     "setting, lighting, camera movement, action beats over time, and the spoken dialogue. " +
     (inp.langEn
@@ -1716,7 +2338,9 @@ async function buildVideoPromptAI(inp) {
   );
 
   const d = aiJSON(answer);
+
   const prompt = clean(d.prompt, 2500);
+
   if (!prompt) throw new Error("EMPTY");
 
   const captions = (d.dialogue || []).slice(0, 8)
@@ -1724,51 +2348,71 @@ async function buildVideoPromptAI(inp) {
     .filter(x => x.text);
 
   return { prompt, captions };
+
 }
 
 async function buildVideoPrompt(silent) {
+
   if (!requireAuth()) throw new Error("AUTH");
+
   const inp = videoInputs();
+
   if (!inp.scene && !inp.lines.length) {
     if (!silent) alert("اكتب وصف المشهد أو الحوار أولاً.");
     throw new Error("EMPTY_INPUT");
   }
 
   $("vBuildBtn").disabled = true;
+
   let result;
 
   try {
-    result = await buildVideoPromptAI(inp);
+
+    result = await buildVideoPromptAI(inp, vMode);
     $("vNote").textContent = "";
+
   } catch (e) {
-    result = buildLocalVideoPrompt(inp);
+
+    result = buildLocalVideoPrompt(inp, vMode);
     $("vNote").textContent = "تعذر المساعد، فاستُخدم قالب جاهز. يمكنك تعديل الوصف يدوياً.";
+
   } finally {
+
     $("vBuildBtn").disabled = false;
+
   }
 
   $("vFinal").value = result.prompt;
   vCaptions = result.captions;
+
   return result;
+
 }
 
-function videoSizeFor(ratio, quality) {
-  const long = quality === "1080" ? "1920" : "1280";
-  const short = quality === "1080" ? "1080" : "720";
-  return ratio === "9:16" ? `${short}x${long}` : `${long}x${short}`;
-}
+
+// ---- التوليد ----
 
 function videoSrcOf(el) {
   return el?.src || el?.currentSrc || el?.querySelector?.("source")?.src || "";
 }
 
 function videoErrorMessage(e) {
-  const raw = String(e?.error?.message || e?.message || e || "");
-  if (e && e.message === "TIMEOUT") return "انتهت مهلة الانتظار. الفيديو يحتاج وقتاً طويلاً، حاول مرة أخرى.";
+
+  const code = e?.code || e?.error?.code || "";
+  const raw = clean(e?.message || e?.error?.message || (typeof e === "string" ? e : ""), 260);
+
+  if (e && e.message === "TIMEOUT") return "انتهت مهلة الانتظار. جرّب مدة أقصر أو نموذجاً أسرع.";
   if (e && e.message === "PUTER_MISSING") return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
-  if (/credit|fund|balance|insufficient|quota/i.test(raw))
-    return "رصيد حسابك على Puter غير كافٍ لهذا الفيديو. جرّب وضع التجربة أو مدة/دقة أقل أو انتظر تجديد الرصيد.";
-  return "تعذر إنشاء الفيديو. سجّل الدخول إلى Puter من الأعلى، أو غيّر النموذج، أو جرّب وضع التجربة.";
+  if (e && e.errorCode === "moderation_flagged") return "رفض فلتر المحتوى هذا الوصف. غيّر صياغته بدل إعادة المحاولة كما هو.";
+
+  if (code === "insufficient_funds")
+    return "رصيد حسابك على Puter لا يكفي لهذا المقطع. جرّب وضع التجربة أو نموذجاً أرخص أو مدة أقصر. " + raw;
+  if (code === "upstream_timeout") return "تأخر المزوّد في إنهاء المقطع. أعد المحاولة بمدة أقصر.";
+  if (code === "input_too_large") return "حجم الصورة أو الفيديو المرفوع كبير جداً. صغّره وأعد المحاولة.";
+  if (code === "access_denied") return "لا توجد صلاحية للوصول إلى الملف المطلوب.";
+
+  return (raw || "فشل إنشاء الفيديو.") + (code ? ` (${code})` : "");
+
 }
 
 function setVideoState(state) {
@@ -1779,97 +2423,171 @@ function setVideoState(state) {
   });
 }
 
+function validateVideoState(st) {
+  if (st.mode === "text" && !st.scene && !st.lines.length) return "اكتب وصف المشهد أو الحوار أولاً.";
+  if (st.mode === "frames" && !st.first) return "ارفع الإطار الأول أولاً.";
+  if (st.mode === "refs" && !st.refs.length) return "أضف صورة واحدة على الأقل كمكوّن.";
+  if (st.mode === "edit" && !st.edit) return "اختر مقطعاً للتعديل أو استخدم مقطعاً من الشريط.";
+  if (st.mode === "edit" && !st.scene && !clean($("vFinal").value, 10)) return "صِف التعديل أو كيف يكمل المشهد.";
+  return "";
+}
+
+async function runVideoRequest(prompt, opts) {
+
+  try {
+
+    return await withTimeout(puter.ai.txt2vid(prompt, opts), 930000);
+
+  } catch (e) {
+
+    const code = e?.code || e?.error?.code || "";
+
+    // بعض النماذج ترفض الأبعاد أو المدة أو الصوت، فنعيد المحاولة بالحد الأدنى
+    if ((code === "bad_request" || code === "upstream_bad_request") && !e?.errorCode) {
+
+      const slim = { ...opts };
+      ["size", "seconds", "generate_audio", "width", "height"].forEach(k => delete slim[k]);
+
+      if (Object.keys(slim).length < Object.keys(opts).length)
+        return await withTimeout(puter.ai.txt2vid(prompt, slim), 930000);
+
+    }
+
+    throw e;
+
+  }
+
+}
+
 async function generateVideo() {
+
   if (!requireAuth()) return;
+
   if (isVideoGenerating) return;
-  if (tooFast("video", 4000)) return;
 
-  const inp = videoInputs();
-  let prompt = clean($("vFinal").value, 2500);
+  const m = currentVModel();
 
-  if (!prompt && !inp.scene && !inp.lines.length) {
-    alert("اكتب وصف المشهد أو الحوار أولاً.");
+  const st = {
+    mode: vMode,
+    ...videoInputs(),
+    seconds: Number($("vDuration").value) || 0,
+    tier: $("vQuality").value,
+    ratio: $("vRatio").value || "16:9",
+    audio: $("vAudio").checked,
+    test: $("vTest").checked,
+    first: vFirst,
+    last: vLast,
+    refs: vRefs.slice(),
+    edit: vEdit
+  };
+
+  const problem = validateVideoState(st);
+
+  if (problem) {
+    alert(problem);
     return;
   }
+
+  if (tooFast("video", 4000)) return;
+
+  const count = Number($("vCount").value) || 1;
 
   isVideoGenerating = true;
   $("vGenBtn").disabled = true;
   setVideoState("vLoading");
 
   const started = Date.now();
+  let label = "";
+
   clearInterval(vTimer);
   vTimer = setInterval(() => {
     $("vLoadingMsg").textContent =
-      `مضى ${Math.floor((Date.now() - started) / 1000)} ثانية. الفيديو قد يستغرق عدة دقائق.`;
+      `${label} مضى ${Math.floor((Date.now() - started) / 1000)} ثانية. الفيديو قد يستغرق عدة دقائق.`;
   }, 1000);
 
+  let done = 0;
+  let lastError = null;
+
   try {
+
     if (!puterReady()) throw new Error("PUTER_MISSING");
 
+    let prompt = clean($("vFinal").value, 2500);
+
     if (!prompt) {
-      $("vLoadingMsg").textContent = "المساعد يبني وصف الفيديو...";
-      prompt = (await buildVideoPrompt(true)).prompt;
+
+      if (st.scene || st.lines.length) {
+        label = "المساعد يبني وصف الفيديو.";
+        prompt = (await buildVideoPrompt(true)).prompt;
+      } else {
+        prompt = st.mode === "refs"
+          ? "A cinematic scene featuring the subjects from the reference images, smooth natural motion."
+          : "Bring this image to life with smooth, natural cinematic motion.";
+      }
+
     }
 
-    const model = clean($("vModelCustom").value, 80) || $("vModel").value;
-    const seconds = Number($("vDuration").value);
-    const size = videoSizeFor($("vRatio").value, $("vQuality").value);
-    const test = $("vTest").checked;
-    const audio = $("vAudio").checked;
+    const captions = vCaptions && vCaptions.length ? vCaptions : st.lines;
+    const opts = buildVideoOptions(m, st);
 
-    const attempts = [
-      { model, seconds, size, generate_audio: audio, test_mode: test },
-      { model, seconds, generate_audio: audio, test_mode: test },
-      { model, test_mode: test }
-    ];
+    for (let i = 1; i <= count; i++) {
 
-    let video = null;
-    let lastError = null;
+      label = count > 1 ? `المقطع ${i} من ${count}.` : "";
 
-    for (const opts of attempts) {
+      let video;
+
       try {
-        video = await withTimeout(puter.ai.txt2vid(prompt, opts), 900000);
-        break;
+        video = await runVideoRequest(prompt, opts);
       } catch (e) {
         lastError = e;
-        if (e && e.message === "TIMEOUT") break;
+        break;
       }
+
+      const src = videoSrcOf(video);
+
+      if (!src || !/^(blob:|https:|data:video\/)/.test(src)) {
+        lastError = new Error("BAD_VIDEO");
+        break;
+      }
+
+      timeline.push({ src, prompt, captions, model: m.label });
+      done++;
+
+      $("vPlayer").src = src;
+      $("vPlayer").load();
+      currentCaptions = captions;
+      playAllIdx = -1;
+      $("vCaption").classList.add("hidden");
+
+      renderTimeline();
+      setVideoState("vResult");
+
     }
 
-    if (!video) throw lastError || new Error("FAILED");
-
-    const src = videoSrcOf(video);
-    if (!src || !/^(blob:|https:|data:video\/)/.test(src)) throw new Error("BAD_VIDEO");
-
-    const captions = vCaptions && vCaptions.length ? vCaptions : inp.lines;
-
-    $("vPlayer").src = src;
-    $("vPlayer").load();
-    $("vCaption").classList.add("hidden");
-
-    videoGallery.unshift({ src, prompt, captions });
-
-    while (videoGallery.length > 12) {
-      const old = videoGallery.pop();
-      if (old.src.startsWith("blob:")) URL.revokeObjectURL(old.src);
-    }
-
-    currentCaptions = captions;
-    renderVideoGallery();
-    setVideoState("vResult");
   } catch (e) {
-    $("vErrorMsg").textContent = videoErrorMessage(e);
-    setVideoState("vError");
+
+    lastError = e;
+
   } finally {
+
     clearInterval(vTimer);
     isVideoGenerating = false;
     $("vGenBtn").disabled = false;
+
   }
+
+  if (!done) {
+    $("vErrorMsg").textContent = videoErrorMessage(lastError);
+    setVideoState("vError");
+  }
+
 }
 
-let currentCaptions = [];
+
+// ---- المشغّل والترجمة ----
 
 $("vPlayer").addEventListener("timeupdate", () => {
+
   const v = $("vPlayer");
   const box = $("vCaption");
 
@@ -1883,65 +2601,162 @@ $("vPlayer").addEventListener("timeupdate", () => {
 
   box.textContent = (c.name ? c.name + ": " : "") + c.text;
   box.classList.remove("hidden");
+
 });
 
-$("vPlayer").addEventListener("ended", () => $("vCaption").classList.add("hidden"));
+$("vPlayer").addEventListener("ended", () => {
 
-function renderVideoGallery() {
-  $("vGallery").innerHTML = "";
-  if (!videoGallery.length) {
-    $("vGallery").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد فيديوهات بعد.</p>';
+  $("vCaption").classList.add("hidden");
+
+  if (playAllIdx >= 0) {
+    playAllIdx++;
+    if (playAllIdx < timeline.length) playIndex(playAllIdx); else playAllIdx = -1;
+  }
+
+});
+
+function playIndex(i) {
+
+  const c = timeline[i];
+
+  if (!c) return;
+
+  $("vPlayer").src = c.src;
+  $("vPlayer").load();
+  currentCaptions = c.captions || [];
+  setVideoState("vResult");
+  $("vPlayer").play().catch(() => {});
+
+}
+
+
+// ---- الشريط الزمني للمشاهد ----
+
+function renderTimeline() {
+
+  $("vTimeline").innerHTML = "";
+
+  if (!timeline.length) {
+    $("vTimeline").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد مشاهد بعد.</p>';
     return;
   }
 
-  videoGallery.forEach(item => {
+  timeline.forEach((c, i) => {
+
     const card = document.createElement("div");
     card.className = "card";
 
     const vid = document.createElement("video");
-    vid.src = item.src;
+    vid.src = c.src;
     vid.muted = true;
     vid.preload = "metadata";
     vid.playsInline = true;
-    vid.style.cssText = "width:100%;height:140px;object-fit:cover;background:#000";
+    vid.style.cssText = "width:100%;height:130px;object-fit:cover;background:#000";
 
-    const content = document.createElement("div");
-    content.className = "p-2";
+    const body = document.createElement("div");
+    body.className = "p-2";
 
-    const text = document.createElement("p");
-    text.className = "text-xs text-slate-400 truncate";
-    text.textContent = item.prompt;
+    const title = document.createElement("p");
+    title.className = "text-xs font-bold truncate";
+    title.textContent = `مشهد ${i + 1} • ${c.model}`;
 
-    const button = document.createElement("button");
-    button.className = "text-xs text-indigo-300 mt-2";
-    button.textContent = "تشغيل";
+    const sub = document.createElement("p");
+    sub.className = "text-xs text-slate-400 truncate";
+    sub.textContent = c.prompt;
 
-    button.onclick = () => {
-      $("vPlayer").src = item.src;
-      $("vPlayer").load();
-      currentCaptions = item.captions || [];
-      setVideoState("vResult");
-      $("vPlayer").play().catch(() => {});
-    };
+    const row = document.createElement("div");
+    row.className = "flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs";
 
-    content.append(text, button);
-    card.append(vid, content);
-    $("vGallery").appendChild(card);
+    const actions = [
+      ["تشغيل", "text-indigo-300", () => { playAllIdx = -1; playIndex(i); }],
+      ["تمديد", "text-emerald-300", () => extendClip(i)],
+      ["تحميل", "text-slate-300", () => downloadSrc(c.src, `scene-${i + 1}`)],
+      ["قبل", "text-slate-400", () => moveClip(i, -1)],
+      ["بعد", "text-slate-400", () => moveClip(i, 1)],
+      ["حذف", "text-red-400", () => removeClip(i)]
+    ];
+
+    actions.forEach(a => {
+      const b = document.createElement("button");
+      b.className = a[1];
+      b.textContent = a[0];
+      b.onclick = a[2];
+      row.appendChild(b);
+    });
+
+    body.append(title, sub, row);
+    card.append(vid, body);
+    $("vTimeline").appendChild(card);
+
   });
+
 }
 
-function clearVideoGallery() {
-  if (!confirm("هل تريد مسح كل الفيديوهات من المعرض؟")) return;
-  videoGallery.forEach(item => {
-    if (item.src.startsWith("blob:")) URL.revokeObjectURL(item.src);
-  });
-  videoGallery = [];
-  renderVideoGallery();
+function moveClip(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= timeline.length) return;
+  [timeline[i], timeline[j]] = [timeline[j], timeline[i]];
+  renderTimeline();
 }
 
-async function downloadVideo() {
-  const src = $("vPlayer").src;
+function removeClip(i) {
+  const c = timeline[i];
+  if (c && c.src.startsWith("blob:")) URL.revokeObjectURL(c.src);
+  timeline.splice(i, 1);
+  renderTimeline();
+}
+
+function clearTimeline() {
+
+  if (!timeline.length || !confirm("هل تريد مسح كل المشاهد؟")) return;
+
+  timeline.forEach(c => { if (c.src.startsWith("blob:")) URL.revokeObjectURL(c.src); });
+  timeline = [];
+  playAllIdx = -1;
+  renderTimeline();
+
+}
+
+function playAll() {
+
+  if (!timeline.length) {
+    alert("لا توجد مشاهد بعد.");
+    return;
+  }
+
+  playAllIdx = 0;
+  playIndex(0);
+
+}
+
+// يحوّل المقطع إلى مدخل للتعديل لإكمال المشهد
+function extendClip(i) {
+
+  const c = timeline[i];
+
+  if (!c) return;
+
+  vEdit = c.src;
+  $("vEditTxt").textContent = `مشهد ${i + 1}`;
+
+  setVideoMode("edit");
+
+  $("vModel").value = "omni";
+  refreshVideoSettings();
+
+  if (!$("vScene").value.trim()) {
+    $("vScene").value = "Continue this scene seamlessly for a few more seconds, keeping the same characters, style, voices and camera.";
+  }
+
+  $("vFinal").value = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+}
+
+async function downloadSrc(src, name) {
+
   if (!src) return;
+
   let href = src;
   let temp = null;
 
@@ -1958,13 +2773,22 @@ async function downloadVideo() {
 
   const link = document.createElement("a");
   link.href = href;
-  link.download = "creative-studio-video-" + Date.now() + ".mp4";
+  link.download = (name || "creative-studio-video") + ".mp4";
   document.body.appendChild(link);
   link.click();
   link.remove();
 
   if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
+
 }
+
+function downloadVideo() {
+  downloadSrc($("vPlayer").getAttribute("src"), "creative-studio-" + Date.now());
+}
+
+setVideoMode("text");
+renderTimeline();
+
 
 // ======================================
 // المساعد الذكي (محادثة)
@@ -1980,21 +2804,31 @@ let chatHistory = [];
 let isChatting = false;
 
 function addChatBubble(role, text) {
+
   const box = document.createElement("div");
+
   box.className = role === "user"
     ? "rounded-xl p-3 bg-indigo-900/40 border border-indigo-700/50"
     : "rounded-xl p-3 bg-slate-800/60 border border-slate-700";
+
   box.style.whiteSpace = "pre-wrap";
   box.textContent = text;
+
   $("chatLog").appendChild(box);
   $("chatLog").scrollTop = $("chatLog").scrollHeight;
+
   return box;
+
 }
 
 async function sendChat() {
+
   if (!requireAuth()) return;
+
   if (isChatting) return;
+
   const text = clean($("chatInput").value, 2000);
+
   if (!text || tooFast("chat", 1200)) return;
 
   isChatting = true;
@@ -2007,43 +2841,61 @@ async function sendChat() {
   const waiting = addChatBubble("assistant", "...");
 
   try {
+
     if (!puterReady()) throw new Error("PUTER_MISSING");
+
     const model = await pickChatModel();
     const opts = model ? { model } : {};
+
     const messages = [{ role: "system", content: CHAT_SYSTEM }, ...chatHistory.slice(-12)];
+
     const res = await withTimeout(puter.ai.chat(messages, opts), 120000);
     const answer = extractText(res).trim();
+
     if (!answer) throw new Error("EMPTY");
 
     waiting.textContent = answer;
     chatHistory.push({ role: "assistant", content: answer });
+
   } catch (error) {
+
     waiting.textContent = aiErrorMessage(error);
     chatHistory.pop();
+
   } finally {
+
     isChatting = false;
     $("chatBtn").disabled = false;
     $("chatLog").scrollTop = $("chatLog").scrollHeight;
+
   }
+
 }
 
 function useLastAnswer() {
+
   const last = [...chatHistory].reverse().find(m => m.role === "assistant");
+
   if (!last) {
     alert("لا يوجد رد من المساعد بعد.");
     return;
   }
+
   $("prompt").value = clean(last.content, 1200);
   $("prompt").focus();
+
 }
 
 function clearChat() {
+
   chatHistory = [];
   $("chatLog").innerHTML = '<p class="text-xs text-slate-500">اسأل عن أي موضوع، أو اطلب مساعدة في كتابة وصف الصورة.</p>';
+
 }
 
 $("chatInput").addEventListener("keydown", e => { if (e.key === "Enter") sendChat(); });
 $("characterSearch").addEventListener("keydown", e => { if (e.key === "Enter") searchCharacter(); });
+
 </script>
 
 </body>
