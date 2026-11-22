@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- سياسة أمان المحتوى: تحدد المصادر المسموح بها فقط. إن تعطل Puter فاحذف هذا الوسم أولاً للتشخيص -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'none'; worker-src blob:; connect-src 'self' https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; worker-src blob:; connect-src 'self' https://accounts.google.com https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://accounts.google.com https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script>
 // منع تضمين الصفحة داخل إطار موقع آخر (Clickjacking)
@@ -16,6 +16,7 @@ if (window.top !== window.self) {
 <title>Creative Studio AI Ultimate</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://js.puter.com/v2/"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -45,10 +46,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .drop{border:2px dashed #3b4670;border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
 .drop:hover,.drop.over{border-color:#818cf8;background:#10172a}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.vcap{background:rgba(0,0,0,.72);color:#fff;border-radius:10px;padding:6px 12px;font-size:15px;line-height:1.7}
+body.locked > header, body.locked > main, body.locked > footer{display:none!important}
 </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen locked">
 
 <!-- مجموعة الأيقونات -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -69,6 +72,27 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
 </svg>
 
+
+<!-- بوابة تسجيل الدخول بحساب Gmail -->
+<div id="gate" class="fixed inset-0 flex items-center justify-center p-4" style="background:#080b16;z-index:1000">
+<div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+<div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto"><svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg></div>
+<h2 class="text-2xl font-black">Creative Studio AI</h2>
+<p class="text-sm text-slate-400">للاستخدام، سجّل الدخول بحساب Gmail.</p>
+<div id="gBtn" class="flex justify-center min-h-[44px]"></div>
+<p id="gMsg" class="text-sm text-red-400"></p>
+<div id="gSetup" class="hidden text-right text-xs text-slate-400 leading-6 card p-4">
+<p class="font-bold text-slate-200 mb-2">الإعداد المطلوب مرة واحدة:</p>
+<ol class="list-decimal pr-5 space-y-1">
+<li>افتح Google Cloud Console ثم APIs &amp; Services ثم Credentials.</li>
+<li>أنشئ OAuth client ID من نوع Web application.</li>
+<li>أضف عنوان موقعك في Authorized JavaScript origins، مثل https://yoursite.com أو http://localhost:8000</li>
+<li>انسخ Client ID وضعه في المتغير GOOGLE_CLIENT_ID أعلى السكربت في الملف.</li>
+</ol>
+</div>
+</div>
+</div>
+
 <header class="sticky top-0 z-50 glass">
 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 <div class="flex items-center gap-3">
@@ -78,9 +102,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <p class="text-xs text-slate-400">Ultimate Image Creator</p>
 </div>
 </div>
+<div class="flex items-center gap-2">
+<span id="gUser" class="hidden text-xs text-slate-400 max-w-[160px] truncate"></span>
+<button id="gOut" class="hidden btn ghost text-xs" onclick="googleSignOut()">خروج</button>
 <button id="authBtn" class="btn ghost text-xs" onclick="signIn()">
 <svg class="ic"><use href="#i-user"/></svg><span id="authLabel">تسجيل الدخول إلى Puter</span>
 </button>
+</div>
 </div>
 </header>
 
@@ -93,7 +121,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </p>
 </div>
 
-<div class="grid lg:grid-cols-12 gap-5">
+<div class="flex gap-2 mb-6">
+<button id="tabImage" class="btn primary" onclick="switchTab('image')"><svg class="ic"><use href="#i-image"/></svg>استوديو الصور</button>
+<button id="tabVideo" class="btn ghost" onclick="switchTab('video')"><svg class="ic"><use href="#i-film"/></svg>استوديو الفيديو</button>
+</div>
+
+<div id="imageStudio" class="grid lg:grid-cols-12 gap-5">
 
 <!-- لوحة التحكم -->
 <section class="lg:col-span-5 glass rounded-2xl p-5 space-y-6">
@@ -333,6 +366,159 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 
 </section>
 </div>
+
+<!-- استوديو الفيديو -->
+<div id="videoStudio" class="hidden grid lg:grid-cols-12 gap-5">
+
+<section class="lg:col-span-5 glass rounded-2xl p-5 space-y-5">
+
+<div>
+<label class="text-sm font-bold block mb-2">المشهد والحركة (بأي لغة)</label>
+<textarea id="vScene" rows="4" class="field" maxlength="1200"
+placeholder="مثال: محارب يقف على سطح مبنى في مدينة ممطرة، يلتفت نحو رفيقته ثم يبتسم ابتسامة هادئة..."></textarea>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="text-sm block mb-2 font-bold">أسلوب الأنيميشن</label>
+<select id="vStyle" class="field"></select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">حركة الكاميرا</label>
+<select id="vCamera" class="field"></select>
+</div>
+</div>
+
+<div>
+<label class="text-sm font-bold block mb-2">الحوار (سطر لكل جملة)</label>
+<textarea id="vDialogue" rows="5" class="field" maxlength="1500"
+placeholder="علي: هل أنت مستعد؟&#10;سارة: دائماً."></textarea>
+<p class="text-xs text-slate-500 mt-2">الصيغة: اسم الشخصية ثم نقطتان ثم الجملة. حتى 8 جمل قصيرة تناسب مدة المقطع.</p>
+</div>
+
+<div>
+<label class="text-sm font-bold block mb-2">لغة الحوار</label>
+<select id="vLang" class="field"></select>
+<input id="vLangOther" class="field mt-2 hidden" maxlength="40" placeholder="اكتب اسم اللغة، مثل: Swahili أو Catalan">
+<p class="text-xs text-slate-500 mt-2">يترجم المساعد الحوار إلى اللغة المختارة. جودة النطق تختلف حسب النموذج، وتكون أفضل في اللغات الكبرى.</p>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="text-sm block mb-2 font-bold">النموذج</label>
+<select id="vModel" class="field">
+<option value="google/veo-3.1">Veo 3.1 - أعلى جودة مع صوت</option>
+<option value="google/veo-3.0-fast-audio">Veo 3 Fast - أسرع مع صوت</option>
+<option value="sora-2">Sora 2 - إبداعي مع صوت</option>
+<option value="sora-2-pro">Sora 2 Pro - جودة أعلى</option>
+</select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">المدة</label>
+<select id="vDuration" class="field">
+<option value="4">4 ثوان</option>
+<option value="8" selected>8 ثوان</option>
+<option value="12">12 ثانية</option>
+</select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">الأبعاد</label>
+<select id="vRatio" class="field">
+<option value="16:9">أفقي 16:9</option>
+<option value="9:16">عمودي 9:16</option>
+</select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">الدقة</label>
+<select id="vQuality" class="field">
+<option value="720">720p</option>
+<option value="1080">1080p (أغلى)</option>
+</select>
+</div>
+</div>
+
+<input id="vModelCustom" class="field" maxlength="80" placeholder="معرّف نموذج مخصص (اختياري)، يتجاوز القائمة">
+
+<div class="space-y-2 text-sm">
+<label class="flex items-center gap-2"><input id="vAudio" type="checkbox" checked> توليد الصوت والحوار داخل الفيديو</label>
+<label class="flex items-center gap-2"><input id="vSubs" type="checkbox" checked> عرض ترجمة الحوار فوق الفيديو</label>
+<label class="flex items-center gap-2"><input id="vTest" type="checkbox"> وضع التجربة (فيديو عيّنة بدون استهلاك رصيد)</label>
+</div>
+
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="text-sm font-bold">الوصف النهائي المرسل للنموذج</label>
+<button id="vBuildBtn" class="btn ghost text-xs" onclick="buildVideoPrompt()"><svg class="ic"><use href="#i-wand"/></svg>ابنِ الوصف بالمساعد</button>
+</div>
+<textarea id="vFinal" rows="5" class="field" maxlength="2500"
+placeholder="يُبنى تلقائياً من المدخلات أعلاه، ويمكنك تعديله قبل التوليد."></textarea>
+<p id="vNote" class="text-xs text-slate-500 mt-2"></p>
+</div>
+
+<button id="vGenBtn" onclick="generateVideo()" class="btn primary w-full text-base">
+<svg class="ic"><use href="#i-film"/></svg>توليد الفيديو
+</button>
+
+</section>
+
+<section class="lg:col-span-7 space-y-5">
+
+<div class="glass rounded-2xl p-5 min-h-[450px] flex flex-col items-center justify-center text-center">
+
+<div id="vEmpty">
+<svg class="ic ic-lg text-indigo-400 mx-auto mb-5"><use href="#i-film"/></svg>
+<h3 class="font-bold text-xl">استوديو الفيديو</h3>
+<p class="text-sm text-slate-500 mt-2">صِف المشهد واكتب الحوار، وسيظهر الفيديو هنا.</p>
+</div>
+
+<div id="vLoading" class="hidden flex-col items-center gap-4">
+<div class="spinner" style="width:65px;height:65px"></div>
+<h3 class="font-bold text-indigo-300">جاري إنتاج الفيديو...</h3>
+<p id="vLoadingMsg" class="text-xs text-slate-500"></p>
+</div>
+
+<div id="vError" class="hidden text-red-400 p-5">
+<svg class="ic ic-lg mx-auto mb-3"><use href="#i-alert"/></svg>
+<p id="vErrorMsg"></p>
+<button onclick="generateVideo()" class="btn primary mt-4">إعادة المحاولة</button>
+</div>
+
+<div id="vResult" class="hidden w-full">
+<div class="relative w-full max-w-3xl mx-auto">
+<video id="vPlayer" controls playsinline class="w-full rounded-xl bg-black"></video>
+<div id="vCaption" dir="auto" class="hidden vcap absolute text-center" style="left:12px;right:12px;bottom:56px;pointer-events:none"></div>
+</div>
+<div class="flex flex-wrap justify-center gap-3 mt-5">
+<button onclick="downloadVideo()" class="btn bg-emerald-600"><svg class="ic"><use href="#i-download"/></svg>تحميل الفيديو</button>
+<button onclick="generateVideo()" class="btn bg-indigo-600"><svg class="ic"><use href="#i-refresh"/></svg>توليد نسخة أخرى</button>
+</div>
+</div>
+</div>
+
+<div class="glass rounded-2xl p-5">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-bold flex items-center gap-2"><svg class="ic"><use href="#i-film"/></svg>معرض الفيديوهات</h3>
+<button onclick="clearVideoGallery()" class="text-xs text-red-400 inline-flex items-center gap-1"><svg class="ic"><use href="#i-trash"/></svg>مسح</button>
+</div>
+<div id="vGallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد فيديوهات بعد.</p>
+</div>
+</div>
+
+<div class="glass rounded-2xl p-4 text-xs text-slate-400">
+<h3 class="text-white font-bold mb-2">نصائح لفيديو أوضح</h3>
+<ul class="list-disc pr-5 space-y-1">
+<li>اجعل الحوار قصيراً: جملة أو جملتان لكل 4 إلى 8 ثوان.</li>
+<li>صِف شكل الشخصية ونبرة صوتها، فهذا يثبّت الهوية والصوت.</li>
+<li>جرّب وضع التجربة أولاً للتأكد من الإعداد قبل استهلاك الرصيد.</li>
+<li>الفيديو يستهلك من رصيد حسابك على Puter أكثر بكثير من الصور.</li>
+<li>إن لم يُنطق الحوار بوضوح، فالترجمة فوق الفيديو تضمن قراءته.</li>
+</ul>
+</div>
+
+</section>
+</div>
+
 </main>
 
 <footer class="text-center text-xs text-slate-600 py-7">
@@ -426,6 +612,167 @@ function sanitizeItem(item) {
 }
 
 const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portrait 2:3", "1.778": "wide cinematic 16:9" };
+
+
+// ======================================
+// تسجيل الدخول بحساب Gmail (Google Identity Services)
+// ======================================
+
+// ضع هنا معرّف العميل من Google Cloud Console
+const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+const ALLOWED_EMAIL_DOMAINS = ["gmail.com", "googlemail.com"];
+
+let authedUser = null;
+
+function decodeJwt(token) {
+  const part = String(token).split(".")[1];
+  if (!part) throw new Error("BAD_TOKEN");
+  const bin = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+  const json = decodeURIComponent(
+    bin.split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
+  );
+  return JSON.parse(json);
+}
+
+function validateGoogleToken(token) {
+
+  const p = decodeJwt(token);
+
+  if (p.aud !== GOOGLE_CLIENT_ID) throw new Error("BAD_AUDIENCE");
+  if (!["https://accounts.google.com", "accounts.google.com"].includes(p.iss)) throw new Error("BAD_ISSUER");
+  if (!p.exp || p.exp * 1000 <= Date.now()) throw new Error("EXPIRED");
+  if (p.email_verified !== true) throw new Error("UNVERIFIED");
+
+  const domain = String(p.email || "").toLowerCase().split("@")[1];
+
+  if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) throw new Error("NOT_GMAIL");
+
+  return p;
+
+}
+
+function lockApp(message) {
+  document.body.classList.add("locked");
+  $("gate").classList.remove("hidden");
+  $("gUser").classList.add("hidden");
+  $("gOut").classList.add("hidden");
+  if (message) $("gMsg").textContent = message;
+}
+
+function unlockApp() {
+  document.body.classList.remove("locked");
+  $("gate").classList.add("hidden");
+  $("gMsg").textContent = "";
+  $("gUser").textContent = authedUser.email;
+  $("gUser").classList.remove("hidden");
+  $("gOut").classList.remove("hidden");
+}
+
+function requireAuth() {
+  if (authedUser && authedUser.exp * 1000 > Date.now()) return true;
+  authedUser = null;
+  lockApp("انتهت الجلسة. سجّل الدخول من جديد.");
+  return false;
+}
+
+function handleCredential(response) {
+
+  try {
+
+    authedUser = validateGoogleToken(response.credential);
+
+    try { sessionStorage.setItem("gToken", response.credential); } catch (e) {}
+
+    unlockApp();
+
+  } catch (e) {
+
+    authedUser = null;
+
+    $("gMsg").textContent =
+      e.message === "NOT_GMAIL" ? "يُسمح بحسابات Gmail فقط."
+      : e.message === "UNVERIFIED" ? "بريدك غير موثّق لدى Google."
+      : e.message === "BAD_AUDIENCE" ? "معرّف العميل غير مطابق. راجع GOOGLE_CLIENT_ID."
+      : "فشل تسجيل الدخول. حاول مرة أخرى.";
+
+  }
+
+}
+
+function googleSignOut() {
+
+  try { window.google?.accounts?.id?.disableAutoSelect(); } catch (e) {}
+  try { sessionStorage.removeItem("gToken"); } catch (e) {}
+
+  authedUser = null;
+  lockApp("تم تسجيل الخروج.");
+
+}
+
+function initGate() {
+
+  try {
+    const saved = sessionStorage.getItem("gToken");
+    if (saved) authedUser = validateGoogleToken(saved);
+  } catch (e) {
+    authedUser = null;
+    try { sessionStorage.removeItem("gToken"); } catch (err) {}
+  }
+
+  if (authedUser) {
+    unlockApp();
+    return;
+  }
+
+  lockApp();
+
+  if (GOOGLE_CLIENT_ID.startsWith("YOUR_")) {
+    $("gSetup").classList.remove("hidden");
+    $("gMsg").textContent = "لم يتم ضبط معرّف Google بعد.";
+    return;
+  }
+
+  if (location.protocol === "file:") {
+    $("gMsg").textContent = "تسجيل Google لا يعمل من ملف محلي. شغّل الصفحة عبر http://localhost أو موقع https.";
+    return;
+  }
+
+  let tries = 0;
+
+  const timer = setInterval(() => {
+
+    if (window.google?.accounts?.id) {
+
+      clearInterval(timer);
+
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredential,
+        auto_select: false
+      });
+
+      google.accounts.id.renderButton($("gBtn"), {
+        theme: "filled_black", size: "large", text: "signin_with",
+        shape: "pill", locale: "ar", width: 280
+      });
+
+    } else if (++tries > 60) {
+
+      clearInterval(timer);
+      $("gMsg").textContent = "تعذر تحميل خدمة Google. تحقق من الإنترنت.";
+
+    }
+
+  }, 250);
+
+}
+
+window.addEventListener("load", initGate);
+
+// إغلاق الجلسة تلقائياً عند انتهاء صلاحية الرمز
+setInterval(() => {
+  if (authedUser && authedUser.exp * 1000 <= Date.now()) requireAuth();
+}, 30000);
 
 
 // ======================================
@@ -657,6 +1004,8 @@ async function searchWiki(lang, q) {
 
 async function searchCharacter(overrideQuery) {
 
+  if (!requireAuth()) return;
+
   const query = clean(typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value, 120);
 
   if (!query) {
@@ -798,6 +1147,8 @@ function showChips(names) {
 }
 
 async function smartSearch() {
+
+  if (!requireAuth()) return;
 
   const text = clean($("characterSearch").value, 300);
 
@@ -951,6 +1302,8 @@ function escapeHtml(s) {
 
 async function identifyImage() {
 
+  if (!requireAuth()) return;
+
   if (!uploadedDataUrl || tooFast("identify", 3000)) return;
 
   $("identifyResult").innerHTML = "";
@@ -1012,6 +1365,8 @@ async function identifyImage() {
 }
 
 async function traceAnime() {
+
+  if (!requireAuth()) return;
 
   if (!uploadedFile || tooFast("trace", 3000)) return;
 
@@ -1078,6 +1433,8 @@ async function traceAnime() {
 // ======================================
 
 async function enhancePrompt() {
+
+  if (!requireAuth()) return;
 
   const text = clean($("prompt").value, 1200);
 
@@ -1242,6 +1599,8 @@ async function generateViaPuter(model, fullPrompt) {
 }
 
 async function generateImage() {
+
+  if (!requireAuth()) return;
 
   if (isGenerating) return;
 
@@ -1444,6 +1803,466 @@ function clearGallery() {
 
 
 // ======================================
+// التبويبات
+// ======================================
+
+function switchTab(tab) {
+  const isVideo = tab === "video";
+  $("imageStudio").classList.toggle("hidden", isVideo);
+  $("videoStudio").classList.toggle("hidden", !isVideo);
+  $("tabImage").className = "btn " + (isVideo ? "ghost" : "primary");
+  $("tabVideo").className = "btn " + (isVideo ? "primary" : "ghost");
+}
+
+
+// ======================================
+// استوديو الفيديو
+// ======================================
+
+const VIDEO_STYLES = [
+  ["cinematic", "سينمائي واقعي", "live-action cinematic film, anamorphic lens, realistic skin and textures, natural lighting"],
+  ["pixar", "أنيميشن ثلاثي الأبعاد", "premium 3D animated feature film, expressive characters, soft global illumination, polished render"],
+  ["anime", "أنمي ياباني", "high-quality Japanese anime, fluid hand-drawn animation, cel shading, dynamic framing"],
+  ["darkanime", "أنمي مظلم", "dark seinen anime, high contrast, dramatic rim lighting, volumetric red mist, gritty linework"],
+  ["cartoon", "كرتون ثنائي الأبعاد", "stylized 2D cartoon animation, bold outlines, vibrant colors, smooth motion"],
+  ["clay", "صلصال ستوب موشن", "claymation stop-motion, tactile clay textures, handcrafted miniature sets"],
+  ["cyber", "سايبربانك", "cyberpunk neon city at night, rain reflections, holographic signs, cinematic"],
+  ["watercolor", "ألوان مائية متحركة", "animated watercolor painting, painterly textures, soft edges, dreamy"],
+  ["doc", "وثائقي واقعي", "documentary style, natural light, handheld realism, shallow depth of field"]
+];
+
+const VIDEO_CAMERAS = [
+  ["auto", "اختيار تلقائي", "cinematic camera work chosen to suit the scene"],
+  ["static", "ثابتة", "locked-off static camera"],
+  ["push", "اقتراب بطيء", "slow dolly push-in"],
+  ["track", "تتبع الشخصية", "smooth tracking shot following the subject"],
+  ["orbit", "دوران حول الشخصية", "orbiting camera around the subject"],
+  ["drone", "منظر جوي", "sweeping aerial drone shot"],
+  ["hand", "كاميرا محمولة", "handheld camera with subtle shake"],
+  ["crane", "رفع كرين", "crane shot rising up"]
+];
+
+// [الرمز، الاسم المعروض، الاسم بالإنجليزية للمساعد]
+const VIDEO_LANGS = [
+  ["auto", "كما كتبته (بدون ترجمة)", ""],
+  ["ar", "العربية", "Arabic"], ["en", "English", "English"], ["es", "Español", "Spanish"],
+  ["fr", "Français", "French"], ["de", "Deutsch", "German"], ["it", "Italiano", "Italian"],
+  ["pt", "Português", "Portuguese"], ["ru", "Русский", "Russian"], ["ja", "日本語", "Japanese"],
+  ["ko", "한국어", "Korean"], ["zh", "中文", "Mandarin Chinese"], ["hi", "हिन्दी", "Hindi"],
+  ["tr", "Türkçe", "Turkish"], ["id", "Bahasa Indonesia", "Indonesian"], ["nl", "Nederlands", "Dutch"],
+  ["pl", "Polski", "Polish"], ["uk", "Українська", "Ukrainian"], ["fa", "فارسی", "Persian"],
+  ["he", "עברית", "Hebrew"], ["th", "ไทย", "Thai"], ["vi", "Tiếng Việt", "Vietnamese"],
+  ["sv", "Svenska", "Swedish"], ["el", "Ελληνικά", "Greek"], ["cs", "Čeština", "Czech"],
+  ["ro", "Română", "Romanian"], ["ms", "Bahasa Melayu", "Malay"], ["bn", "বাংলা", "Bengali"],
+  ["ur", "اردو", "Urdu"], ["sw", "Kiswahili", "Swahili"],
+  ["other", "لغة أخرى (اكتب اسمها)...", ""]
+];
+
+function fillSelect(id, rows) {
+  rows.forEach(r => {
+    const o = document.createElement("option");
+    o.value = r[0];
+    o.textContent = r[1];
+    $(id).appendChild(o);
+  });
+}
+
+fillSelect("vStyle", VIDEO_STYLES);
+fillSelect("vCamera", VIDEO_CAMERAS);
+fillSelect("vLang", VIDEO_LANGS);
+
+let vCaptions = null;
+let isVideoGenerating = false;
+let videoGallery = [];
+let vTimer = null;
+
+// أي تغيير في المدخلات يلغي الوصف المبني سابقاً
+["vScene", "vDialogue", "vLang", "vStyle", "vCamera", "vLangOther"].forEach(id => {
+  $(id).addEventListener("input", () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; });
+  $(id).addEventListener("change", () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; });
+});
+
+$("vLang").addEventListener("change", () => {
+  $("vLangOther").classList.toggle("hidden", $("vLang").value !== "other");
+});
+
+function parseDialogue(raw) {
+
+  return clean(raw, 1500)
+    .split(/\n+/)
+    .map(l => l.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+    .map(l => {
+      const m = l.match(/^([^:：]{1,40})[:：]\s*(.+)$/);
+      return m
+        ? { name: clean(m[1], 40), text: clean(m[2], 220) }
+        : { name: "", text: clean(l, 220) };
+    })
+    .filter(x => x.text);
+
+}
+
+function videoInputs() {
+
+  const style = VIDEO_STYLES.find(x => x[0] === $("vStyle").value) || VIDEO_STYLES[0];
+  const cam = VIDEO_CAMERAS.find(x => x[0] === $("vCamera").value) || VIDEO_CAMERAS[0];
+  const lang = VIDEO_LANGS.find(x => x[0] === $("vLang").value);
+
+  let langEn = lang ? lang[2] : "";
+
+  if ($("vLang").value === "other") langEn = clean($("vLangOther").value, 40);
+
+  return {
+    scene: clean($("vScene").value, 1200),
+    style: style[2],
+    camera: cam[2],
+    lines: parseDialogue($("vDialogue").value),
+    langEn,
+    audio: $("vAudio").checked
+  };
+
+}
+
+// قالب محلي يعمل حتى إن تعذر المساعد (الحوار بلغته كما كُتب)
+function buildLocalVideoPrompt(inp) {
+
+  let p = `${inp.style}. ${inp.scene || "A cinematic scene"}. Camera: ${inp.camera}.`;
+
+  if (inp.lines.length) {
+    p += " The characters speak aloud on camera with clear, natural, lip-synced voices: " +
+      inp.lines.map(l => `${l.name ? l.name + " says" : "Says"}: "${l.text}"`).join(" ") + ".";
+  } else if (inp.audio) {
+    p += " Rich ambient sound design.";
+  }
+
+  p += " Sharp, high detail, smooth natural motion, consistent characters, no on-screen text, no watermark.";
+
+  return { prompt: clean(p, 2500), captions: inp.lines };
+
+}
+
+async function buildVideoPromptAI(inp) {
+
+  const answer = await aiAsk(
+    "You are an expert prompt engineer for text-to-video models with native synchronized audio (Veo, Sora). " +
+    "Create ONE vivid English video prompt from the data below. Include: visual style, characters (age, look, voice tone), " +
+    "setting, lighting, camera movement, action beats over time, and the spoken dialogue. " +
+    (inp.langEn
+      ? `Translate every dialogue line faithfully into ${inp.langEn} and keep it written in that language's own script. `
+      : "Keep every dialogue line in its original language, unchanged. ") +
+    "Put each spoken line in double quotes with its speaker. No on-screen text, no watermark. Under 180 words. " +
+    "Reply ONLY with JSON: {\"prompt\":\"...\",\"dialogue\":[{\"speaker\":\"\",\"line\":\"\"}]} " +
+    "where dialogue holds the final lines exactly as spoken. " +
+    "DATA: scene: " + inp.scene + " | style: " + inp.style + " | camera: " + inp.camera +
+    " | dialogue: " + JSON.stringify(inp.lines)
+  );
+
+  const d = aiJSON(answer);
+
+  const prompt = clean(d.prompt, 2500);
+
+  if (!prompt) throw new Error("EMPTY");
+
+  const captions = (d.dialogue || []).slice(0, 8)
+    .map(x => ({ name: clean(x.speaker, 40), text: clean(x.line, 260) }))
+    .filter(x => x.text);
+
+  return { prompt, captions };
+
+}
+
+async function buildVideoPrompt(silent) {
+
+  if (!requireAuth()) throw new Error("AUTH");
+
+  const inp = videoInputs();
+
+  if (!inp.scene && !inp.lines.length) {
+    if (!silent) alert("اكتب وصف المشهد أو الحوار أولاً.");
+    throw new Error("EMPTY_INPUT");
+  }
+
+  $("vBuildBtn").disabled = true;
+
+  let result;
+
+  try {
+
+    result = await buildVideoPromptAI(inp);
+    $("vNote").textContent = "";
+
+  } catch (e) {
+
+    result = buildLocalVideoPrompt(inp);
+    $("vNote").textContent = "تعذر المساعد، فاستُخدم قالب جاهز. يمكنك تعديل الوصف يدوياً.";
+
+  } finally {
+
+    $("vBuildBtn").disabled = false;
+
+  }
+
+  $("vFinal").value = result.prompt;
+  vCaptions = result.captions;
+
+  return result;
+
+}
+
+function videoSizeFor(ratio, quality) {
+  const long = quality === "1080" ? "1920" : "1280";
+  const short = quality === "1080" ? "1080" : "720";
+  return ratio === "9:16" ? `${short}x${long}` : `${long}x${short}`;
+}
+
+function videoSrcOf(el) {
+  return el?.src || el?.currentSrc || el?.querySelector?.("source")?.src || "";
+}
+
+function videoErrorMessage(e) {
+
+  const raw = String(e?.error?.message || e?.message || e || "");
+
+  if (e && e.message === "TIMEOUT") return "انتهت مهلة الانتظار. الفيديو يحتاج وقتاً طويلاً، حاول مرة أخرى.";
+
+  if (e && e.message === "PUTER_MISSING") return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+
+  if (/credit|fund|balance|insufficient|quota/i.test(raw))
+    return "رصيد حسابك على Puter غير كافٍ لهذا الفيديو. جرّب وضع التجربة أو مدة/دقة أقل أو انتظر تجديد الرصيد.";
+
+  return "تعذر إنشاء الفيديو. سجّل الدخول إلى Puter من الأعلى، أو غيّر النموذج، أو جرّب وضع التجربة.";
+
+}
+
+function setVideoState(state) {
+  ["vEmpty", "vLoading", "vError", "vResult"].forEach(id => {
+    const on = id === state;
+    $(id).classList.toggle("hidden", !on);
+    if (id === "vLoading") $(id).classList.toggle("flex", on);
+  });
+}
+
+async function generateVideo() {
+
+  if (!requireAuth()) return;
+
+  if (isVideoGenerating) return;
+
+  if (tooFast("video", 4000)) return;
+
+  const inp = videoInputs();
+  let prompt = clean($("vFinal").value, 2500);
+
+  if (!prompt && !inp.scene && !inp.lines.length) {
+    alert("اكتب وصف المشهد أو الحوار أولاً.");
+    return;
+  }
+
+  isVideoGenerating = true;
+  $("vGenBtn").disabled = true;
+  setVideoState("vLoading");
+
+  const started = Date.now();
+
+  clearInterval(vTimer);
+  vTimer = setInterval(() => {
+    $("vLoadingMsg").textContent =
+      `مضى ${Math.floor((Date.now() - started) / 1000)} ثانية. الفيديو قد يستغرق عدة دقائق.`;
+  }, 1000);
+
+  try {
+
+    if (!puterReady()) throw new Error("PUTER_MISSING");
+
+    if (!prompt) {
+      $("vLoadingMsg").textContent = "المساعد يبني وصف الفيديو...";
+      prompt = (await buildVideoPrompt(true)).prompt;
+    }
+
+    const model = clean($("vModelCustom").value, 80) || $("vModel").value;
+    const seconds = Number($("vDuration").value);
+    const size = videoSizeFor($("vRatio").value, $("vQuality").value);
+    const test = $("vTest").checked;
+    const audio = $("vAudio").checked;
+
+    // محاولات متدرجة: بعض النماذج ترفض بعض الخيارات
+    const attempts = [
+      { model, seconds, size, generate_audio: audio, test_mode: test },
+      { model, seconds, generate_audio: audio, test_mode: test },
+      { model, test_mode: test }
+    ];
+
+    let video = null;
+    let lastError = null;
+
+    for (const opts of attempts) {
+
+      try {
+        video = await withTimeout(puter.ai.txt2vid(prompt, opts), 900000);
+        break;
+      } catch (e) {
+        lastError = e;
+        if (e && e.message === "TIMEOUT") break;
+      }
+
+    }
+
+    if (!video) throw lastError || new Error("FAILED");
+
+    const src = videoSrcOf(video);
+
+    if (!src || !/^(blob:|https:|data:video\/)/.test(src)) throw new Error("BAD_VIDEO");
+
+    const captions = vCaptions && vCaptions.length ? vCaptions : inp.lines;
+
+    $("vPlayer").src = src;
+    $("vPlayer").load();
+    $("vCaption").classList.add("hidden");
+
+    videoGallery.unshift({ src, prompt, captions });
+
+    while (videoGallery.length > 12) {
+      const old = videoGallery.pop();
+      if (old.src.startsWith("blob:")) URL.revokeObjectURL(old.src);
+    }
+
+    currentCaptions = captions;
+    renderVideoGallery();
+    setVideoState("vResult");
+
+  } catch (e) {
+
+    $("vErrorMsg").textContent = videoErrorMessage(e);
+    setVideoState("vError");
+
+  } finally {
+
+    clearInterval(vTimer);
+    isVideoGenerating = false;
+    $("vGenBtn").disabled = false;
+
+  }
+
+}
+
+let currentCaptions = [];
+
+// ترجمة الحوار فوق الفيديو موزعة على مدته
+$("vPlayer").addEventListener("timeupdate", () => {
+
+  const v = $("vPlayer");
+  const box = $("vCaption");
+
+  if (!$("vSubs").checked || !currentCaptions.length || !isFinite(v.duration) || v.duration <= 0) {
+    box.classList.add("hidden");
+    return;
+  }
+
+  const idx = Math.min(currentCaptions.length - 1, Math.floor((v.currentTime / v.duration) * currentCaptions.length));
+  const c = currentCaptions[idx];
+
+  box.textContent = (c.name ? c.name + ": " : "") + c.text;
+  box.classList.remove("hidden");
+
+});
+
+$("vPlayer").addEventListener("ended", () => $("vCaption").classList.add("hidden"));
+
+function renderVideoGallery() {
+
+  $("vGallery").innerHTML = "";
+
+  if (!videoGallery.length) {
+    $("vGallery").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد فيديوهات بعد.</p>';
+    return;
+  }
+
+  videoGallery.forEach(item => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const vid = document.createElement("video");
+    vid.src = item.src;
+    vid.muted = true;
+    vid.preload = "metadata";
+    vid.playsInline = true;
+    vid.style.cssText = "width:100%;height:140px;object-fit:cover;background:#000";
+
+    const content = document.createElement("div");
+    content.className = "p-2";
+
+    const text = document.createElement("p");
+    text.className = "text-xs text-slate-400 truncate";
+    text.textContent = item.prompt;
+
+    const button = document.createElement("button");
+    button.className = "text-xs text-indigo-300 mt-2";
+    button.textContent = "تشغيل";
+
+    button.onclick = () => {
+      $("vPlayer").src = item.src;
+      $("vPlayer").load();
+      currentCaptions = item.captions || [];
+      setVideoState("vResult");
+      $("vPlayer").play().catch(() => {});
+    };
+
+    content.append(text, button);
+    card.append(vid, content);
+    $("vGallery").appendChild(card);
+
+  });
+
+}
+
+function clearVideoGallery() {
+
+  if (!confirm("هل تريد مسح كل الفيديوهات من المعرض؟")) return;
+
+  videoGallery.forEach(item => {
+    if (item.src.startsWith("blob:")) URL.revokeObjectURL(item.src);
+  });
+
+  videoGallery = [];
+  renderVideoGallery();
+
+}
+
+async function downloadVideo() {
+
+  const src = $("vPlayer").src;
+
+  if (!src) return;
+
+  let href = src;
+  let temp = null;
+
+  if (!/^(blob:|data:)/.test(href)) {
+    try {
+      const r = await fetch(href);
+      temp = URL.createObjectURL(await r.blob());
+      href = temp;
+    } catch (e) {
+      window.open(src, "_blank", "noopener");
+      return;
+    }
+  }
+
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = "creative-studio-video-" + Date.now() + ".mp4";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
+
+}
+
+
+// ======================================
 // المساعد الذكي (محادثة)
 // ======================================
 
@@ -1475,6 +2294,8 @@ function addChatBubble(role, text) {
 }
 
 async function sendChat() {
+
+  if (!requireAuth()) return;
 
   if (isChatting) return;
 
