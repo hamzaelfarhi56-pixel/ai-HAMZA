@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- سياسة أمان المحتوى: تحدد المصادر المسموح بها فقط. إن تعطل Puter فاحذف هذا الوسم أولاً للتشخيص -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'none'; worker-src blob:; connect-src 'self' https://accounts.google.com https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://accounts.google.com https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'none'; worker-src blob:; connect-src 'self' https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script>
 // منع تضمين الصفحة داخل إطار موقع آخر (Clickjacking)
@@ -16,7 +16,6 @@ if (window.top !== window.self) {
 <title>Creative Studio AI Ultimate</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://js.puter.com/v2/"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -46,11 +45,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .drop{border:2px dashed #3b4670;border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
 .drop:hover,.drop.over{border-color:#818cf8;background:#10172a}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-body.locked > header, body.locked > main, body.locked > footer{display:none!important}
 </style>
 </head>
 
-<body class="min-h-screen locked">
+<body class="min-h-screen">
 
 <!-- مجموعة الأيقونات -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -71,27 +69,6 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
 </svg>
 
-
-<!-- بوابة تسجيل الدخول بحساب Gmail -->
-<div id="gate" class="fixed inset-0 flex items-center justify-center p-4" style="background:#080b16;z-index:1000">
-<div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-4">
-<div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto"><svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg></div>
-<h2 class="text-2xl font-black">Creative Studio AI</h2>
-<p class="text-sm text-slate-400">للاستخدام، سجّل الدخول بحساب Gmail.</p>
-<div id="gBtn" class="flex justify-center min-h-[44px]"></div>
-<p id="gMsg" class="text-sm text-red-400"></p>
-<div id="gSetup" class="hidden text-right text-xs text-slate-400 leading-6 card p-4">
-<p class="font-bold text-slate-200 mb-2">الإعداد المطلوب مرة واحدة:</p>
-<ol class="list-decimal pr-5 space-y-1">
-<li>افتح Google Cloud Console ثم APIs &amp; Services ثم Credentials.</li>
-<li>أنشئ OAuth client ID من نوع Web application.</li>
-<li>أضف عنوان موقعك في Authorized JavaScript origins، مثل https://yoursite.com أو http://localhost:8000</li>
-<li>انسخ Client ID وضعه في المتغير GOOGLE_CLIENT_ID أعلى السكربت في الملف.</li>
-</ol>
-</div>
-</div>
-</div>
-
 <header class="sticky top-0 z-50 glass">
 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 <div class="flex items-center gap-3">
@@ -101,13 +78,9 @@ body.locked > header, body.locked > main, body.locked > footer{display:none!impo
 <p class="text-xs text-slate-400">Ultimate Image Creator</p>
 </div>
 </div>
-<div class="flex items-center gap-2">
-<span id="gUser" class="hidden text-xs text-slate-400 max-w-[160px] truncate"></span>
-<button id="gOut" class="hidden btn ghost text-xs" onclick="googleSignOut()">خروج</button>
 <button id="authBtn" class="btn ghost text-xs" onclick="signIn()">
 <svg class="ic"><use href="#i-user"/></svg><span id="authLabel">تسجيل الدخول إلى Puter</span>
 </button>
-</div>
 </div>
 </header>
 
@@ -456,167 +429,6 @@ const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portr
 
 
 // ======================================
-// تسجيل الدخول بحساب Gmail (Google Identity Services)
-// ======================================
-
-// ضع هنا معرّف العميل من Google Cloud Console
-const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
-const ALLOWED_EMAIL_DOMAINS = ["gmail.com", "googlemail.com"];
-
-let authedUser = null;
-
-function decodeJwt(token) {
-  const part = String(token).split(".")[1];
-  if (!part) throw new Error("BAD_TOKEN");
-  const bin = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
-  const json = decodeURIComponent(
-    bin.split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-  );
-  return JSON.parse(json);
-}
-
-function validateGoogleToken(token) {
-
-  const p = decodeJwt(token);
-
-  if (p.aud !== GOOGLE_CLIENT_ID) throw new Error("BAD_AUDIENCE");
-  if (!["https://accounts.google.com", "accounts.google.com"].includes(p.iss)) throw new Error("BAD_ISSUER");
-  if (!p.exp || p.exp * 1000 <= Date.now()) throw new Error("EXPIRED");
-  if (p.email_verified !== true) throw new Error("UNVERIFIED");
-
-  const domain = String(p.email || "").toLowerCase().split("@")[1];
-
-  if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) throw new Error("NOT_GMAIL");
-
-  return p;
-
-}
-
-function lockApp(message) {
-  document.body.classList.add("locked");
-  $("gate").classList.remove("hidden");
-  $("gUser").classList.add("hidden");
-  $("gOut").classList.add("hidden");
-  if (message) $("gMsg").textContent = message;
-}
-
-function unlockApp() {
-  document.body.classList.remove("locked");
-  $("gate").classList.add("hidden");
-  $("gMsg").textContent = "";
-  $("gUser").textContent = authedUser.email;
-  $("gUser").classList.remove("hidden");
-  $("gOut").classList.remove("hidden");
-}
-
-function requireAuth() {
-  if (authedUser && authedUser.exp * 1000 > Date.now()) return true;
-  authedUser = null;
-  lockApp("انتهت الجلسة. سجّل الدخول من جديد.");
-  return false;
-}
-
-function handleCredential(response) {
-
-  try {
-
-    authedUser = validateGoogleToken(response.credential);
-
-    try { sessionStorage.setItem("gToken", response.credential); } catch (e) {}
-
-    unlockApp();
-
-  } catch (e) {
-
-    authedUser = null;
-
-    $("gMsg").textContent =
-      e.message === "NOT_GMAIL" ? "يُسمح بحسابات Gmail فقط."
-      : e.message === "UNVERIFIED" ? "بريدك غير موثّق لدى Google."
-      : e.message === "BAD_AUDIENCE" ? "معرّف العميل غير مطابق. راجع GOOGLE_CLIENT_ID."
-      : "فشل تسجيل الدخول. حاول مرة أخرى.";
-
-  }
-
-}
-
-function googleSignOut() {
-
-  try { window.google?.accounts?.id?.disableAutoSelect(); } catch (e) {}
-  try { sessionStorage.removeItem("gToken"); } catch (e) {}
-
-  authedUser = null;
-  lockApp("تم تسجيل الخروج.");
-
-}
-
-function initGate() {
-
-  try {
-    const saved = sessionStorage.getItem("gToken");
-    if (saved) authedUser = validateGoogleToken(saved);
-  } catch (e) {
-    authedUser = null;
-    try { sessionStorage.removeItem("gToken"); } catch (err) {}
-  }
-
-  if (authedUser) {
-    unlockApp();
-    return;
-  }
-
-  lockApp();
-
-  if (GOOGLE_CLIENT_ID.startsWith("YOUR_")) {
-    $("gSetup").classList.remove("hidden");
-    $("gMsg").textContent = "لم يتم ضبط معرّف Google بعد.";
-    return;
-  }
-
-  if (location.protocol === "file:") {
-    $("gMsg").textContent = "تسجيل Google لا يعمل من ملف محلي. شغّل الصفحة عبر http://localhost أو موقع https.";
-    return;
-  }
-
-  let tries = 0;
-
-  const timer = setInterval(() => {
-
-    if (window.google?.accounts?.id) {
-
-      clearInterval(timer);
-
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredential,
-        auto_select: false
-      });
-
-      google.accounts.id.renderButton($("gBtn"), {
-        theme: "filled_black", size: "large", text: "signin_with",
-        shape: "pill", locale: "ar", width: 280
-      });
-
-    } else if (++tries > 60) {
-
-      clearInterval(timer);
-      $("gMsg").textContent = "تعذر تحميل خدمة Google. تحقق من الإنترنت.";
-
-    }
-
-  }, 250);
-
-}
-
-window.addEventListener("load", initGate);
-
-// إغلاق الجلسة تلقائياً عند انتهاء صلاحية الرمز
-setInterval(() => {
-  if (authedUser && authedUser.exp * 1000 <= Date.now()) requireAuth();
-}, 30000);
-
-
-// ======================================
 // Puter: الحساب والمساعد
 // ======================================
 
@@ -845,8 +657,6 @@ async function searchWiki(lang, q) {
 
 async function searchCharacter(overrideQuery) {
 
-  if (!requireAuth()) return;
-
   const query = clean(typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value, 120);
 
   if (!query) {
@@ -988,8 +798,6 @@ function showChips(names) {
 }
 
 async function smartSearch() {
-
-  if (!requireAuth()) return;
 
   const text = clean($("characterSearch").value, 300);
 
@@ -1143,8 +951,6 @@ function escapeHtml(s) {
 
 async function identifyImage() {
 
-  if (!requireAuth()) return;
-
   if (!uploadedDataUrl || tooFast("identify", 3000)) return;
 
   $("identifyResult").innerHTML = "";
@@ -1206,8 +1012,6 @@ async function identifyImage() {
 }
 
 async function traceAnime() {
-
-  if (!requireAuth()) return;
 
   if (!uploadedFile || tooFast("trace", 3000)) return;
 
@@ -1274,8 +1078,6 @@ async function traceAnime() {
 // ======================================
 
 async function enhancePrompt() {
-
-  if (!requireAuth()) return;
 
   const text = clean($("prompt").value, 1200);
 
@@ -1440,8 +1242,6 @@ async function generateViaPuter(model, fullPrompt) {
 }
 
 async function generateImage() {
-
-  if (!requireAuth()) return;
 
   if (isGenerating) return;
 
@@ -1675,8 +1475,6 @@ function addChatBubble(role, text) {
 }
 
 async function sendChat() {
-
-  if (!requireAuth()) return;
 
   if (isChatting) return;
 
