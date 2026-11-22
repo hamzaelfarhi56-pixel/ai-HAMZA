@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- سياسة أمان المحتوى: تحدد المصادر المسموح بها فقط. إن تعطل Puter فاحذف هذا الوسم أولاً للتشخيص -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'none'; worker-src blob:; connect-src 'self' https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; worker-src blob:; connect-src 'self' https://*.puter.com https://puter.com wss://*.puter.com https://graphql.anilist.co https://api.jikan.moe https://*.wikipedia.org https://api.trace.moe https://*.pollinations.ai; frame-src https://*.puter.com https://puter.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script>
 // منع تضمين الصفحة داخل إطار موقع آخر (Clickjacking)
@@ -45,10 +45,14 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .drop{border:2px dashed #3b4670;border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:.2s}
 .drop:hover,.drop.over{border-color:#818cf8;background:#10172a}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.mode-btn{border:1px solid #29334c;background:#10172a;border-radius:10px;padding:10px;font-size:12px;font-weight:600}
+.mode-btn.active{border-color:#818cf8;background:#312e81;color:white}
+.vcap{background:rgba(0,0,0,.72);color:#fff;border-radius:10px;padding:6px 12px;font-size:15px;line-height:1.7}
+body.locked > header, body.locked > main, body.locked > footer{display:none!important}
 </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen locked">
 
 <!-- مجموعة الأيقونات -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -69,6 +73,19 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
 </svg>
 
+
+<!-- بوابة تسجيل الدخول بحساب Gmail -->
+<div id="gate" class="fixed inset-0 flex items-center justify-center p-4" style="background:#080b16;z-index:1000">
+<div class="glass rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+<div class="w-14 h-14 rounded-xl primary flex items-center justify-center mx-auto"><svg class="ic" style="width:1.8rem;height:1.8rem"><use href="#i-sparkle"/></svg></div>
+<h2 class="text-2xl font-black">Creative Studio AI</h2>
+<p class="text-sm text-slate-400">سجّل الدخول للمتابعة، واختر <b>Google</b> من نافذة التسجيل.</p>
+<button id="gBtn" class="btn primary w-full text-base" onclick="gateSignIn()"><svg class="ic"><use href="#i-user"/></svg>المتابعة بحساب Google</button>
+<p id="gMsg" class="text-sm text-red-400"></p>
+<p class="text-xs text-slate-500 leading-6">تظهر نافذة تسجيل من Puter (الخدمة التي تشغّل الذكاء الاصطناعي هنا)، وفيها زر Google دون أي إعداد منك.</p>
+</div>
+</div>
+
 <header class="sticky top-0 z-50 glass">
 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 <div class="flex items-center gap-3">
@@ -78,9 +95,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <p class="text-xs text-slate-400">Ultimate Image Creator</p>
 </div>
 </div>
-<button id="authBtn" class="btn ghost text-xs" onclick="signIn()">
+<div class="flex items-center gap-2">
+<span id="gUser" class="hidden text-xs text-slate-400 max-w-[160px] truncate"></span>
+<button id="gOut" class="hidden btn ghost text-xs" onclick="signOutApp()">خروج</button>
+<button id="authBtn" class="hidden btn ghost text-xs" onclick="signIn()">
 <svg class="ic"><use href="#i-user"/></svg><span id="authLabel">تسجيل الدخول إلى Puter</span>
 </button>
+</div>
 </div>
 </header>
 
@@ -93,7 +114,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </p>
 </div>
 
-<div class="grid lg:grid-cols-12 gap-5">
+<div class="flex gap-2 mb-6">
+<button id="tabImage" class="btn primary" onclick="switchTab('image')"><svg class="ic"><use href="#i-image"/></svg>استوديو الصور</button>
+<button id="tabVideo" class="btn ghost" onclick="switchTab('video')"><svg class="ic"><use href="#i-film"/></svg>استوديو الفيديو</button>
+</div>
+
+<div id="imageStudio" class="grid lg:grid-cols-12 gap-5">
 
 <!-- لوحة التحكم -->
 <section class="lg:col-span-5 glass rounded-2xl p-5 space-y-6">
@@ -333,6 +359,204 @@ placeholder="A shirtless boxer standing in a dark ring, low angle, red smoke..."
 
 </section>
 </div>
+
+<!-- استوديو الفيديو (مستوحى من Google Flow) -->
+<div id="videoStudio" class="hidden grid lg:grid-cols-12 gap-5">
+
+<section class="lg:col-span-5 glass rounded-2xl p-5 space-y-5">
+
+<div>
+<div class="grid grid-cols-2 gap-2" id="vModes">
+<button class="mode-btn active" data-mode="text">نص إلى فيديو</button>
+<button class="mode-btn" data-mode="frames">إطارات إلى فيديو</button>
+<button class="mode-btn" data-mode="refs">مكوّنات إلى فيديو</button>
+<button class="mode-btn" data-mode="edit">تعديل / تمديد</button>
+</div>
+<p id="vModeHint" class="text-xs text-slate-500 mt-2"></p>
+</div>
+
+<!-- الإطارات -->
+<div id="vFramesBox" class="hidden grid grid-cols-2 gap-3">
+<div>
+<p class="text-xs font-bold mb-1">الإطار الأول</p>
+<div class="drop" style="padding:10px" onclick="$('vFirstInput').click()">
+<img id="vFirstPrev" class="hidden rounded-lg mx-auto max-h-28 object-contain" alt="">
+<span id="vFirstTxt" class="text-xs text-slate-400">اختر صورة</span>
+</div>
+<button class="text-xs text-red-400 mt-1" onclick="clearSlot('first')">إزالة</button>
+</div>
+<div id="vLastWrap">
+<p class="text-xs font-bold mb-1">الإطار الأخير (اختياري)</p>
+<div class="drop" style="padding:10px" onclick="$('vLastInput').click()">
+<img id="vLastPrev" class="hidden rounded-lg mx-auto max-h-28 object-contain" alt="">
+<span id="vLastTxt" class="text-xs text-slate-400">اختر صورة</span>
+</div>
+<button class="text-xs text-red-400 mt-1" onclick="clearSlot('last')">إزالة</button>
+</div>
+<input id="vFirstInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+<input id="vLastInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+</div>
+
+<!-- المكوّنات -->
+<div id="vRefsBox" class="hidden">
+<div class="drop" style="padding:10px" onclick="$('vRefInput').click()">
+<span class="text-xs text-slate-400">أضف صور المكوّنات: شخصيات أو أشياء أو أسلوب</span>
+</div>
+<p id="vRefCount" class="text-xs text-slate-500 mt-1"></p>
+<div id="vRefList" class="flex flex-wrap gap-2 mt-2"></div>
+<input id="vRefInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden">
+</div>
+
+<!-- التعديل والتمديد -->
+<div id="vEditBox" class="hidden space-y-2">
+<div class="drop" style="padding:10px" onclick="$('vEditInput').click()">
+<span id="vEditTxt" class="text-xs text-slate-400">اختر مقطعاً (MP4 أو MOV أو WebM، حتى 32MB)</span>
+</div>
+<button class="btn ghost text-xs w-full" onclick="useCurrentClip()">استخدام المقطع المعروض حالياً</button>
+<input id="vEditInput" type="file" accept="video/mp4,video/quicktime,video/webm" class="hidden">
+</div>
+
+<div>
+<label class="text-sm font-bold block mb-2">المشهد والحركة (بأي لغة)</label>
+<textarea id="vScene" rows="4" class="field" maxlength="1200"
+placeholder="مثال: محارب يقف على سطح مبنى في مدينة ممطرة، يلتفت نحو رفيقته ثم يبتسم ابتسامة هادئة..."></textarea>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="text-sm block mb-2 font-bold">أسلوب الأنيميشن</label>
+<select id="vStyle" class="field"></select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">حركة الكاميرا</label>
+<select id="vCamera" class="field"></select>
+</div>
+</div>
+
+<div>
+<label class="text-sm font-bold block mb-2">الحوار (سطر لكل جملة)</label>
+<textarea id="vDialogue" rows="4" class="field" maxlength="1500"
+placeholder="علي: هل أنت مستعد؟&#10;سارة: دائماً."></textarea>
+<p class="text-xs text-slate-500 mt-2">الصيغة: اسم الشخصية ثم نقطتان ثم الجملة. جمل قصيرة تناسب مدة المقطع.</p>
+</div>
+
+<div>
+<label class="text-sm font-bold block mb-2">لغة الحوار</label>
+<select id="vLang" class="field"></select>
+<input id="vLangOther" class="field mt-2 hidden" maxlength="40" placeholder="اكتب اسم اللغة، مثل: Swahili أو Catalan">
+<p class="text-xs text-slate-500 mt-2">يترجم المساعد الحوار إلى اللغة المختارة. جودة النطق تختلف حسب النموذج.</p>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div class="col-span-2">
+<label class="text-sm block mb-2 font-bold">النموذج</label>
+<select id="vModel" class="field"></select>
+<p id="vModelNote" class="text-xs text-slate-500 mt-2"></p>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">المدة</label>
+<select id="vDuration" class="field"></select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">الأبعاد</label>
+<select id="vRatio" class="field"></select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">الدقة</label>
+<select id="vQuality" class="field"></select>
+</div>
+<div>
+<label class="text-sm block mb-2 font-bold">عدد النسخ</label>
+<select id="vCount" class="field">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="4">4</option>
+</select>
+</div>
+</div>
+
+<div class="space-y-2 text-sm">
+<label id="vAudioRow" class="flex items-center gap-2"><input id="vAudio" type="checkbox" checked> توليد الصوت والحوار</label>
+<p id="vAudioNote" class="text-xs text-slate-500"></p>
+<label class="flex items-center gap-2"><input id="vSubs" type="checkbox" checked> عرض ترجمة الحوار فوق الفيديو</label>
+<label class="flex items-center gap-2"><input id="vTest" type="checkbox"> وضع التجربة (مقطع عيّنة بلا استهلاك رصيد)</label>
+</div>
+
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="text-sm font-bold">الوصف النهائي المرسل للنموذج</label>
+<button id="vBuildBtn" class="btn ghost text-xs" onclick="buildVideoPrompt()"><svg class="ic"><use href="#i-wand"/></svg>ابنِ الوصف بالمساعد</button>
+</div>
+<textarea id="vFinal" rows="5" class="field" maxlength="2500"
+placeholder="يُبنى تلقائياً من المدخلات أعلاه، ويمكنك تعديله قبل التوليد."></textarea>
+<p id="vNote" class="text-xs text-slate-500 mt-2"></p>
+</div>
+
+<button id="vGenBtn" onclick="generateVideo()" class="btn primary w-full text-base">
+<svg class="ic"><use href="#i-film"/></svg>توليد الفيديو
+</button>
+
+</section>
+
+<section class="lg:col-span-7 space-y-5">
+
+<div class="glass rounded-2xl p-5 min-h-[420px] flex flex-col items-center justify-center text-center">
+
+<div id="vEmpty">
+<svg class="ic ic-lg text-indigo-400 mx-auto mb-5"><use href="#i-film"/></svg>
+<h3 class="font-bold text-xl">استوديو الفيديو</h3>
+<p class="text-sm text-slate-500 mt-2">اختر نمطاً وصِف المشهد والحوار، وسيظهر المقطع هنا.</p>
+</div>
+
+<div id="vLoading" class="hidden flex-col items-center gap-4">
+<div class="spinner" style="width:65px;height:65px"></div>
+<h3 class="font-bold text-indigo-300">جاري إنتاج الفيديو...</h3>
+<p id="vLoadingMsg" class="text-xs text-slate-500"></p>
+</div>
+
+<div id="vError" class="hidden text-red-400 p-5">
+<svg class="ic ic-lg mx-auto mb-3"><use href="#i-alert"/></svg>
+<p id="vErrorMsg" class="leading-7"></p>
+<button onclick="generateVideo()" class="btn primary mt-4">إعادة المحاولة</button>
+</div>
+
+<div id="vResult" class="hidden w-full">
+<div class="relative w-full max-w-3xl mx-auto">
+<video id="vPlayer" controls playsinline class="w-full rounded-xl bg-black"></video>
+<div id="vCaption" dir="auto" class="hidden vcap absolute text-center" style="left:12px;right:12px;bottom:56px;pointer-events:none"></div>
+</div>
+<div class="flex flex-wrap justify-center gap-3 mt-5">
+<button onclick="downloadVideo()" class="btn bg-emerald-600"><svg class="ic"><use href="#i-download"/></svg>تحميل المقطع</button>
+<button onclick="generateVideo()" class="btn bg-indigo-600"><svg class="ic"><use href="#i-refresh"/></svg>نسخة أخرى</button>
+</div>
+</div>
+</div>
+
+<div class="glass rounded-2xl p-5">
+<div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+<h3 class="font-bold flex items-center gap-2"><svg class="ic"><use href="#i-film"/></svg>الشريط الزمني للمشاهد</h3>
+<div class="flex gap-4">
+<button onclick="playAll()" class="text-xs text-indigo-300">تشغيل المشاهد بالتسلسل</button>
+<button onclick="clearTimeline()" class="text-xs text-red-400 inline-flex items-center gap-1"><svg class="ic"><use href="#i-trash"/></svg>مسح</button>
+</div>
+</div>
+<div id="vTimeline" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+<p class="text-xs text-slate-500 mt-3 leading-6">روابط المقاطع مؤقتة عند مزوّد الخدمة، فحمّل ما تريد الاحتفاظ به. زر "تمديد" يستخدم المقطع لإكمال المشهد. دمج المشاهد في ملف واحد غير متاح من المتصفح.</p>
+</div>
+
+<div class="glass rounded-2xl p-4 text-xs text-slate-400">
+<h3 class="text-white font-bold mb-2">نصائح لفيديو أوضح</h3>
+<ul class="list-disc pr-5 space-y-1">
+<li>اجعل الحوار قصيراً: جملة أو جملتان لكل 4 إلى 8 ثوان.</li>
+<li>صِف شكل الشخصية ونبرة صوتها لتثبيت الهوية والصوت.</li>
+<li>لتثبيت شخصية بين المشاهد استخدم "مكوّنات إلى فيديو" بصورتها.</li>
+<li>جرّب وضع التجربة أولاً، فالفيديو يستهلك رصيداً أكثر بكثير من الصور.</li>
+<li>إن لم يُنطق الحوار بوضوح، فالترجمة فوق الفيديو تضمن قراءته.</li>
+</ul>
+</div>
+
+</section>
+</div>
 </main>
 
 <footer class="text-center text-xs text-slate-600 py-7">
@@ -426,6 +650,145 @@ function sanitizeItem(item) {
 }
 
 const ASPECT_TEXT = { "1": "square 1:1", "1.5": "landscape 3:2", "0.667": "portrait 2:3", "1.778": "wide cinematic 16:9" };
+
+
+// ======================================
+// تسجيل الدخول بالبريد الإلكتروني (عبر حساب Puter المجاني)
+// ======================================
+
+// اجعلها true لحصر الدخول بحسابات Gmail فقط
+const REQUIRE_GMAIL = false;
+
+let authedUser = null;
+
+function isSignedInNow() {
+  try { return puterReady() && puter.auth.isSignedIn(); } catch (e) { return false; }
+}
+
+function lockApp(message) {
+  document.body.classList.add("locked");
+  $("gate").classList.remove("hidden");
+  $("gUser").classList.add("hidden");
+  $("gOut").classList.add("hidden");
+  if (message) $("gMsg").textContent = message;
+}
+
+function unlockApp() {
+  document.body.classList.remove("locked");
+  $("gate").classList.add("hidden");
+  $("gMsg").textContent = "";
+  $("gUser").textContent = authedUser.label;
+  $("gUser").classList.remove("hidden");
+  $("gOut").classList.remove("hidden");
+}
+
+function requireAuth() {
+  if (authedUser && isSignedInNow()) return true;
+  authedUser = null;
+  lockApp("سجّل الدخول للمتابعة.");
+  return false;
+}
+
+async function acceptUser() {
+
+  const u = await puter.auth.getUser();
+  const email = String(u?.email || "").toLowerCase();
+
+  if (REQUIRE_GMAIL) {
+    if (!email) throw new Error("NO_EMAIL");
+    if (!/@(gmail|googlemail)\.com$/.test(email)) throw new Error("NOT_GMAIL");
+  }
+
+  authedUser = { label: clean(email || u?.username || "متصل", 60) };
+
+  unlockApp();
+
+}
+
+function gateError(e) {
+  return e && e.message === "NOT_GMAIL" ? "يُسمح بحسابات Gmail فقط."
+    : e && e.message === "NO_EMAIL" ? "تعذر التحقق من بريدك الإلكتروني."
+    : "لم يكتمل تسجيل الدخول. حاول مرة أخرى.";
+}
+
+async function gateSignIn() {
+
+  if (!puterReady()) {
+    $("gMsg").textContent = "تعذر تحميل خدمة الدخول. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+    return;
+  }
+
+  $("gBtn").disabled = true;
+  $("gMsg").textContent = "";
+
+  try {
+
+    await puter.auth.signIn();
+    await acceptUser();
+
+  } catch (e) {
+
+    authedUser = null;
+    $("gMsg").textContent = gateError(e);
+
+    if (e && (e.message === "NOT_GMAIL" || e.message === "NO_EMAIL")) {
+      try { await puter.auth.signOut(); } catch (err) {}
+    }
+
+  } finally {
+
+    $("gBtn").disabled = false;
+
+  }
+
+}
+
+async function signOutApp() {
+
+  try { await puter.auth.signOut(); } catch (e) {}
+
+  authedUser = null;
+  lockApp("تم تسجيل الخروج.");
+
+}
+
+function initGate() {
+
+  lockApp();
+
+  let tries = 0;
+
+  const timer = setInterval(async () => {
+
+    if (puterReady()) {
+
+      clearInterval(timer);
+
+      // جلسة سابقة ما زالت صالحة
+      try {
+        if (puter.auth.isSignedIn()) await acceptUser();
+      } catch (e) {
+        authedUser = null;
+        $("gMsg").textContent = gateError(e);
+      }
+
+    } else if (++tries > 40) {
+
+      clearInterval(timer);
+      $("gMsg").textContent = "تعذر تحميل خدمة الدخول. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+
+    }
+
+  }, 250);
+
+}
+
+window.addEventListener("load", initGate);
+
+// إعادة القفل إن انتهت الجلسة
+setInterval(() => {
+  if (authedUser && !isSignedInNow()) requireAuth();
+}, 30000);
 
 
 // ======================================
@@ -543,7 +906,7 @@ function aiErrorMessage(e) {
   if (e && e.message === "TIMEOUT")
     return "انتهت مهلة الانتظار. حاول مرة أخرى.";
 
-  return "تعذر الاتصال بالمساعد. سجّل الدخول إلى Puter من الأعلى ثم حاول مجدداً.";
+  return "تعذر الاتصال بالمساعد. تأكد من اتصالك وحسابك على Puter ثم حاول مجدداً.";
 
 }
 
@@ -656,6 +1019,8 @@ async function searchWiki(lang, q) {
 }
 
 async function searchCharacter(overrideQuery) {
+
+  if (!requireAuth()) return;
 
   const query = clean(typeof overrideQuery === "string" ? overrideQuery : $("characterSearch").value, 120);
 
@@ -798,6 +1163,8 @@ function showChips(names) {
 }
 
 async function smartSearch() {
+
+  if (!requireAuth()) return;
 
   const text = clean($("characterSearch").value, 300);
 
@@ -951,6 +1318,8 @@ function escapeHtml(s) {
 
 async function identifyImage() {
 
+  if (!requireAuth()) return;
+
   if (!uploadedDataUrl || tooFast("identify", 3000)) return;
 
   $("identifyResult").innerHTML = "";
@@ -1012,6 +1381,8 @@ async function identifyImage() {
 }
 
 async function traceAnime() {
+
+  if (!requireAuth()) return;
 
   if (!uploadedFile || tooFast("trace", 3000)) return;
 
@@ -1078,6 +1449,8 @@ async function traceAnime() {
 // ======================================
 
 async function enhancePrompt() {
+
+  if (!requireAuth()) return;
 
   const text = clean($("prompt").value, 1200);
 
@@ -1243,6 +1616,8 @@ async function generateViaPuter(model, fullPrompt) {
 
 async function generateImage() {
 
+  if (!requireAuth()) return;
+
   if (isGenerating) return;
 
   const prompt = clean($("prompt").value, 1200);
@@ -1343,7 +1718,7 @@ async function generateImage() {
     $("errorMessage").textContent =
       lastError && lastError.message === "TIMEOUT"
         ? "انتهت مهلة الانتظار. جرب محركاً آخر أو حاول لاحقاً."
-        : "تعذر توليد الصورة. سجّل الدخول إلى Puter من الأعلى أو جرب محرك Pollinations.";
+        : "تعذر توليد الصورة. تحقق من رصيد حسابك على Puter أو جرب محرك Pollinations.";
 
   }
 
@@ -1444,6 +1819,978 @@ function clearGallery() {
 
 
 // ======================================
+// التبويبات
+// ======================================
+
+function switchTab(tab) {
+  const isVideo = tab === "video";
+  $("imageStudio").classList.toggle("hidden", isVideo);
+  $("videoStudio").classList.toggle("hidden", !isVideo);
+  $("tabImage").className = "btn " + (isVideo ? "ghost" : "primary");
+  $("tabVideo").className = "btn " + (isVideo ? "primary" : "ghost");
+}
+
+
+// ======================================
+// استوديو الفيديو (مستوحى من Google Flow)
+// ======================================
+
+const VIDEO_STYLES = [
+  ["cinematic", "سينمائي واقعي", "live-action cinematic film, anamorphic lens, realistic skin and textures, natural lighting"],
+  ["pixar", "أنيميشن ثلاثي الأبعاد", "premium 3D animated feature film, expressive characters, soft global illumination, polished render"],
+  ["anime", "أنمي ياباني", "high-quality Japanese anime, fluid hand-drawn animation, cel shading, dynamic framing"],
+  ["darkanime", "أنمي مظلم", "dark seinen anime, high contrast, dramatic rim lighting, volumetric red mist, gritty linework"],
+  ["cartoon", "كرتون ثنائي الأبعاد", "stylized 2D cartoon animation, bold outlines, vibrant colors, smooth motion"],
+  ["clay", "صلصال ستوب موشن", "claymation stop-motion, tactile clay textures, handcrafted miniature sets"],
+  ["cyber", "سايبربانك", "cyberpunk neon city at night, rain reflections, holographic signs, cinematic"],
+  ["watercolor", "ألوان مائية متحركة", "animated watercolor painting, painterly textures, soft edges, dreamy"],
+  ["doc", "وثائقي واقعي", "documentary style, natural light, handheld realism, shallow depth of field"]
+];
+
+const VIDEO_CAMERAS = [
+  ["auto", "اختيار تلقائي", "cinematic camera work chosen to suit the scene"],
+  ["static", "ثابتة", "locked-off static camera"],
+  ["push", "اقتراب بطيء", "slow dolly push-in"],
+  ["track", "تتبع الشخصية", "smooth tracking shot following the subject"],
+  ["orbit", "دوران حول الشخصية", "orbiting camera around the subject"],
+  ["drone", "منظر جوي", "sweeping aerial drone shot"],
+  ["hand", "كاميرا محمولة", "handheld camera with subtle shake"],
+  ["crane", "رفع كرين", "crane shot rising up"]
+];
+
+// [الرمز، الاسم المعروض، الاسم بالإنجليزية للمساعد]
+const VIDEO_LANGS = [
+  ["auto", "كما كتبته (بدون ترجمة)", ""],
+  ["ar", "العربية", "Arabic"], ["en", "English", "English"], ["es", "Español", "Spanish"],
+  ["fr", "Français", "French"], ["de", "Deutsch", "German"], ["it", "Italiano", "Italian"],
+  ["pt", "Português", "Portuguese"], ["ru", "Русский", "Russian"], ["ja", "日本語", "Japanese"],
+  ["ko", "한국어", "Korean"], ["zh", "中文", "Mandarin Chinese"], ["hi", "हिन्दी", "Hindi"],
+  ["tr", "Türkçe", "Turkish"], ["id", "Bahasa Indonesia", "Indonesian"], ["nl", "Nederlands", "Dutch"],
+  ["pl", "Polski", "Polish"], ["uk", "Українська", "Ukrainian"], ["fa", "فارسی", "Persian"],
+  ["he", "עברית", "Hebrew"], ["th", "ไทย", "Thai"], ["vi", "Tiếng Việt", "Vietnamese"],
+  ["sv", "Svenska", "Swedish"], ["el", "Ελληνικά", "Greek"], ["cs", "Čeština", "Czech"],
+  ["ro", "Română", "Romanian"], ["ms", "Bahasa Melayu", "Malay"], ["bn", "বাংলা", "Bengali"],
+  ["ur", "اردو", "Urdu"], ["sw", "Kiswahili", "Swahili"],
+  ["other", "لغة أخرى (اكتب اسمها)...", ""]
+];
+
+function fillSelect(id, rows) {
+  rows.forEach(r => {
+    const o = document.createElement("option");
+    o.value = r[0];
+    o.textContent = r[1];
+    $(id).appendChild(o);
+  });
+}
+
+// ---- جدول النماذج (من توثيق Puter الرسمي لـ txt2vid) ----
+// audio: always = مدمج دائماً، optional = يُرسل generate_audio، none = بلا صوت
+// tiers: درجات الدقة بالبكسل للجانب الأقصر، null = افتراضية (لا يُرسل size)
+const RATIOS_ALL = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"];
+
+const VMODELS = [
+  { key: "veo31", label: "Veo 3.1 (جودة سينمائية)", id: "google/veo-3.1",
+    dur: [4, 6, 8], ddef: 8, tiers: null, ratios: ["16:9"], audio: "always",
+    modes: ["text", "frames"], last: true, maxRefs: 0,
+    note: "أعلى جودة مع صوت وحوار مدمجين. الأبعاد والدقة يحددها النموذج." },
+  { key: "veo31lite", label: "Veo 3.1 Lite (سريع)", id: "google/veo-3.1-lite",
+    dur: [4, 6, 8], ddef: 8, tiers: null, ratios: ["16:9"], audio: "always",
+    modes: ["text", "frames"], last: true, maxRefs: 0,
+    note: "نسخة أسرع وأخف من Veo 3.1 مع صوت مدمج." },
+  { key: "seedance25", label: "Seedance 2.5", id: "seedance-2-5",
+    dur: [4, 5, 6, 8, 10, 12, 15, 20, 30], ddef: 5, tiers: [720, 480, 1080], ratios: RATIOS_ALL, audio: "optional",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 30,
+    note: "واقعية عالية وتحكم دقيق بالمكوّنات (حتى 30 صورة) ومقاطع طويلة." },
+  { key: "seedance2mini", label: "Seedance 2.0 Mini (اقتصادي)", id: "seedance-2-0-mini",
+    dur: [4, 5, 6, 8, 10, 12, 15], ddef: 5, tiers: [720, 480], ratios: RATIOS_ALL, audio: "optional",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 9,
+    note: "خيار اقتصادي سريع للتجارب، يقبل حتى 9 صور مكوّنات." },
+  { key: "kling4", label: "Kling 4.0", id: "kling-4.0",
+    dur: [3, 5, 8, 10, 15, 20, 30], ddef: 5, tiers: [720, 1080], ratios: ["16:9", "9:16", "1:1"], audio: "always",
+    modes: ["text", "frames"], last: true, maxRefs: 0,
+    note: "حركة طبيعية وصوت مدمج ومقاطع تصل إلى 30 ثانية." },
+  { key: "kling3omni", label: "Kling 3.0 Omni", id: "kling-3.0-omni",
+    dur: [3, 5, 8, 10, 15], ddef: 5, tiers: [720, 1080], ratios: ["16:9", "9:16", "1:1"], audio: "optional",
+    modes: ["text", "frames", "refs", "edit"], last: true, maxRefs: 7,
+    note: "يعدّل مقطعاً موجوداً (MP4 أو MOV من 3 إلى 15 ثانية) ويقبل 7 صور مكوّنات." },
+  { key: "wan27", label: "Wan 2.7", idByMode: { text: "wan-ai/wan2.7-t2v", frames: "wan-ai/wan2.7-i2v", refs: "wan-ai/wan2.7-r2v" },
+    dur: [2, 3, 5, 8, 10, 15], ddef: 5, tiers: [720, 1080], ratios: ["16:9", "9:16", "1:1", "4:3", "3:4"], audio: "always",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 5,
+    note: "نموذج مفتوح بتكلفة منخفضة نسبياً مع صوت مولَّد. في المكوّنات حتى 10 ثوان." },
+  { key: "minimax", label: "MiniMax H3", id: "minimax-h3",
+    dur: [4, 5, 6, 8, 10, 12, 15], ddef: 5, tiers: [768], ratios: ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"], audio: "always",
+    modes: ["text", "frames", "refs"], last: true, maxRefs: 5,
+    note: "جودة جيدة وصوت مدمج ويقبل حتى 5 صور مرجعية." },
+  { key: "omni", label: "Gemini Omni (تعديل وتمديد)", id: "gemini-omni-1.1-flash",
+    dur: null, ddef: 0, tiers: null, named: ["720p", "1080p", "360p", "4k"], ratios: ["16:9", "9:16"], audio: "none",
+    modes: ["text", "frames", "edit"], last: false, maxRefs: 0,
+    note: "يحدد طول المقطع بنفسه. ممتاز لتعديل أو تمديد مقطع (حتى 10 ثوان)، لكنه مكلف نسبياً." }
+];
+
+const OMNI_SIZES = {
+  "360p": ["640x360", "360x640"], "720p": ["1280x720", "720x1280"],
+  "1080p": ["1920x1080", "1080x1920"], "4k": ["3840x2160", "2160x3840"]
+};
+
+// الجانب الأقصر = درجة الدقة، والنسبة من الأبعاد
+function pixelSize(tier, ratio) {
+  const [a, b] = ratio.split(":").map(Number);
+  let w, h;
+  if (a >= b) { h = tier; w = tier * a / b; } else { w = tier; h = tier * b / a; }
+  return `${Math.round(w / 2) * 2}x${Math.round(h / 2) * 2}`;
+}
+
+function buildVideoOptions(m, st) {
+
+  const o = { model: m.idByMode ? m.idByMode[st.mode] : m.id };
+
+  if (m.dur) {
+    let sec = st.seconds || m.ddef;
+    if (m.key === "wan27" && st.mode === "refs") sec = Math.min(sec, 10);
+    o.seconds = sec;
+  }
+
+  if (m.key === "omni") {
+    const pair = OMNI_SIZES[st.tier];
+    if (pair) o.size = pair[st.ratio === "9:16" ? 1 : 0];
+  } else if (m.tiers) {
+    o.size = pixelSize(Number(st.tier) || m.tiers[0], st.ratio || "16:9");
+  }
+
+  if (m.audio === "optional") o.generate_audio = !!st.audio;
+
+  if (st.mode === "frames") {
+    o.input_reference = st.first;
+    if (st.last && m.last) o.last_frame = st.last;
+  }
+
+  if (st.mode === "refs") o.reference_images = st.refs;
+
+  if (st.mode === "edit") o.inputVideo = st.edit;
+
+  if (st.test) o.test_mode = true;
+
+  return o;
+
+}
+
+const MODE_HINTS = {
+  text: "صِف المشهد والحوار وسيُنتج المقطع من الصفر.",
+  frames: "ارفع الإطار الأول (والأخير اختيارياً) وصِف الحركة بينهما.",
+  refs: "ارفع صور شخصيات أو أشياء أو أسلوب، والنموذج يحافظ عليها في المقطع.",
+  edit: "ارفع مقطعاً قصيراً أو استخدم مقطعاً من الشريط، ثم صِف التعديل أو اطلب إكمال المشهد."
+};
+
+const MODE_PROMPT_EN = {
+  text: "Text-to-video.",
+  frames: "Frames-to-video: the first frame image (and optionally a last frame) is supplied separately. Describe the motion, camera move and dialogue that bring the first frame to life, and do not re-describe the static image in detail.",
+  refs: "Ingredients-to-video: reference images of subjects or style are supplied separately. Refer to them as the characters or objects and keep them consistent.",
+  edit: "Video edit or extend: an existing clip is supplied. Describe only the change, or how the scene continues."
+};
+
+fillSelect("vStyle", VIDEO_STYLES);
+fillSelect("vCamera", VIDEO_CAMERAS);
+fillSelect("vLang", VIDEO_LANGS);
+
+let vMode = "text";
+let vFirst = null, vLast = null, vRefs = [], vEdit = null;
+let vCaptions = null;
+let currentCaptions = [];
+let isVideoGenerating = false;
+let timeline = [];
+let playAllIdx = -1;
+let vTimer = null;
+
+function currentVModel() {
+  return VMODELS.find(m => m.key === $("vModel").value) || VMODELS[0];
+}
+
+function fillOptions(id, rows, selected) {
+  const el = $(id);
+  el.innerHTML = "";
+  rows.forEach(r => {
+    const o = document.createElement("option");
+    o.value = String(r[0]);
+    o.textContent = r[1];
+    el.appendChild(o);
+  });
+  if (selected !== undefined && rows.some(r => String(r[0]) === String(selected))) el.value = String(selected);
+}
+
+function refreshVideoModels() {
+
+  const prev = $("vModel").value;
+  const list = VMODELS.filter(m => m.modes.includes(vMode));
+
+  fillOptions("vModel", list.map(m => [m.key, m.label]), prev);
+
+  refreshVideoSettings();
+
+}
+
+function refreshVideoSettings() {
+
+  const m = currentVModel();
+
+  // المدة
+  if (m.dur) {
+    fillOptions("vDuration", m.dur.map(d => [d, d + " ثانية"]), $("vDuration").value || m.ddef);
+    if (!m.dur.map(String).includes($("vDuration").value)) $("vDuration").value = String(m.ddef);
+    $("vDuration").disabled = false;
+  } else {
+    fillOptions("vDuration", [["0", "يحددها النموذج"]]);
+    $("vDuration").disabled = true;
+  }
+
+  // الدقة
+  if (m.tiers) {
+    fillOptions("vQuality", m.tiers.map(t => [t, t + "p"]), $("vQuality").value);
+    $("vQuality").disabled = false;
+  } else if (m.named) {
+    fillOptions("vQuality", m.named.map(t => [t, t]), $("vQuality").value);
+    $("vQuality").disabled = false;
+  } else {
+    fillOptions("vQuality", [["", "يحددها النموذج"]]);
+    $("vQuality").disabled = true;
+  }
+
+  // الأبعاد
+  fillOptions("vRatio", m.ratios.map(r => [r, r]), $("vRatio").value);
+
+  // الصوت
+  $("vAudioRow").classList.toggle("hidden", m.audio !== "optional");
+  $("vAudioNote").textContent =
+    m.audio === "always" ? "الصوت والحوار مدمجان دائماً في هذا النموذج."
+    : m.audio === "none" ? "هذا النموذج لا يولّد صوتاً."
+    : "";
+
+  // الإطار الأخير
+  $("vLastWrap").classList.toggle("hidden", !m.last);
+  if (!m.last) clearSlot("last");
+
+  // المكوّنات
+  while (vRefs.length > m.maxRefs) vRefs.pop();
+  renderRefs();
+
+  $("vModelNote").textContent = m.note || "";
+
+}
+
+function setVideoMode(mode) {
+
+  vMode = mode;
+
+  document.querySelectorAll("#vModes .mode-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.mode === mode)
+  );
+
+  $("vFramesBox").classList.toggle("hidden", mode !== "frames");
+  $("vRefsBox").classList.toggle("hidden", mode !== "refs");
+  $("vEditBox").classList.toggle("hidden", mode !== "edit");
+  $("vModeHint").textContent = MODE_HINTS[mode];
+
+  refreshVideoModels();
+
+}
+
+document.querySelectorAll("#vModes .mode-btn").forEach(b =>
+  b.addEventListener("click", () => setVideoMode(b.dataset.mode))
+);
+
+$("vModel").addEventListener("change", refreshVideoSettings);
+
+// أي تغيير في المدخلات يلغي الوصف المبني سابقاً
+["vScene", "vDialogue", "vLang", "vStyle", "vCamera", "vLangOther"].forEach(id => {
+  const reset = () => { $("vFinal").value = ""; vCaptions = null; $("vNote").textContent = ""; };
+  $(id).addEventListener("input", reset);
+  $(id).addEventListener("change", reset);
+});
+
+$("vLang").addEventListener("change", () => {
+  $("vLangOther").classList.toggle("hidden", $("vLang").value !== "other");
+});
+
+
+// ---- رفع الصور والفيديو ----
+
+function setSlot(which, url) {
+
+  const first = which === "first";
+  const prev = $(first ? "vFirstPrev" : "vLastPrev");
+  const txt = $(first ? "vFirstTxt" : "vLastTxt");
+
+  if (url) {
+    prev.src = url;
+    prev.classList.remove("hidden");
+    txt.classList.add("hidden");
+  } else {
+    prev.removeAttribute("src");
+    prev.classList.add("hidden");
+    txt.classList.remove("hidden");
+  }
+
+}
+
+function clearSlot(which) {
+  if (which === "first") vFirst = null; else vLast = null;
+  setSlot(which, null);
+}
+
+async function readImage(file) {
+
+  if (!file || !ALLOWED_UPLOAD_TYPES.includes(file.type)) {
+    alert("الأنواع المسموحة: JPG, PNG, WEBP, GIF.");
+    return null;
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    alert("حجم الصورة كبير. الحد الأقصى 15 ميجابايت.");
+    return null;
+  }
+
+  try {
+    return await fileToDataUrl(file, 1280);
+  } catch (e) {
+    alert("تعذر قراءة الصورة.");
+    return null;
+  }
+
+}
+
+async function loadSlot(which, file) {
+  const url = await readImage(file);
+  if (!url) return;
+  if (which === "first") vFirst = url; else vLast = url;
+  setSlot(which, url);
+}
+
+$("vFirstInput").addEventListener("change", e => { loadSlot("first", e.target.files[0]); e.target.value = ""; });
+$("vLastInput").addEventListener("change", e => { loadSlot("last", e.target.files[0]); e.target.value = ""; });
+
+function renderRefs() {
+
+  const m = currentVModel();
+
+  $("vRefList").innerHTML = "";
+  $("vRefCount").textContent = m.maxRefs ? `${vRefs.length} من ${m.maxRefs} صور` : "هذا النموذج لا يقبل صور مكوّنات.";
+
+  vRefs.forEach((url, i) => {
+
+    const box = document.createElement("div");
+    box.className = "relative";
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "";
+    img.style.cssText = "width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #29334c";
+
+    const x = document.createElement("button");
+    x.textContent = "×";
+    x.className = "absolute text-xs bg-red-600 rounded-full";
+    x.style.cssText = "top:-6px;left:-6px;width:18px;height:18px;line-height:18px";
+    x.onclick = () => { vRefs.splice(i, 1); renderRefs(); };
+
+    box.append(img, x);
+    $("vRefList").appendChild(box);
+
+  });
+
+}
+
+$("vRefInput").addEventListener("change", async e => {
+
+  const m = currentVModel();
+  const files = [...e.target.files];
+
+  e.target.value = "";
+
+  for (const f of files) {
+    if (vRefs.length >= m.maxRefs) {
+      alert(`الحد الأقصى لهذا النموذج ${m.maxRefs} صور.`);
+      break;
+    }
+    const url = await readImage(f);
+    if (url) vRefs.push(url);
+  }
+
+  renderRefs();
+
+});
+
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+
+$("vEditInput").addEventListener("change", e => {
+
+  const f = e.target.files[0];
+
+  e.target.value = "";
+
+  if (!f) return;
+
+  if (!ALLOWED_VIDEO_TYPES.includes(f.type)) {
+    alert("الأنواع المسموحة: MP4 أو MOV أو WebM.");
+    return;
+  }
+
+  if (f.size > 32 * 1024 * 1024) {
+    alert("حجم الفيديو كبير. الحد الأقصى 32 ميجابايت.");
+    return;
+  }
+
+  vEdit = f;
+  $("vEditTxt").textContent = clean(f.name, 60);
+
+});
+
+function useCurrentClip() {
+
+  const src = $("vPlayer").getAttribute("src");
+
+  if (!src) {
+    alert("لا يوجد مقطع معروض حالياً.");
+    return;
+  }
+
+  vEdit = src;
+  $("vEditTxt").textContent = "المقطع المعروض حالياً";
+
+}
+
+
+// ---- المدخلات والوصف ----
+
+function parseDialogue(raw) {
+
+  return clean(raw, 1500)
+    .split(/\n+/)
+    .map(l => l.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+    .map(l => {
+      const m = l.match(/^([^:：]{1,40})[:：]\s*(.+)$/);
+      return m
+        ? { name: clean(m[1], 40), text: clean(m[2], 220) }
+        : { name: "", text: clean(l, 220) };
+    })
+    .filter(x => x.text);
+
+}
+
+function videoInputs() {
+
+  const style = VIDEO_STYLES.find(x => x[0] === $("vStyle").value) || VIDEO_STYLES[0];
+  const cam = VIDEO_CAMERAS.find(x => x[0] === $("vCamera").value) || VIDEO_CAMERAS[0];
+  const lang = VIDEO_LANGS.find(x => x[0] === $("vLang").value);
+
+  let langEn = lang ? lang[2] : "";
+
+  if ($("vLang").value === "other") langEn = clean($("vLangOther").value, 40);
+
+  return {
+    scene: clean($("vScene").value, 1200),
+    style: style[2],
+    camera: cam[2],
+    lines: parseDialogue($("vDialogue").value),
+    langEn,
+    audio: $("vAudio").checked
+  };
+
+}
+
+function buildLocalVideoPrompt(inp, mode) {
+
+  let p = "";
+
+  if (mode === "frames") p += "Starting from the provided first frame, bring it to life. ";
+  if (mode === "refs") p += "Use the provided reference images as the characters, objects and style, keeping them consistent. ";
+  if (mode === "edit") p += "Edit the provided video: ";
+
+  p += `${inp.style}. ${inp.scene || "A cinematic scene"}. Camera: ${inp.camera}.`;
+
+  if (inp.lines.length) {
+    p += " The characters speak aloud on camera with clear, natural, lip-synced voices: " +
+      inp.lines.map(l => `${l.name ? l.name + " says" : "Says"}: "${l.text}"`).join(" ") + ".";
+  } else if (inp.audio) {
+    p += " Rich ambient sound design.";
+  }
+
+  p += " Sharp, high detail, smooth natural motion, consistent characters, no on-screen text, no watermark.";
+
+  return { prompt: clean(p, 2500), captions: inp.lines };
+
+}
+
+async function buildVideoPromptAI(inp, mode) {
+
+  const answer = await aiAsk(
+    "You are an expert prompt engineer for text-to-video models with native synchronized audio (Veo, Seedance, Kling). " +
+    MODE_PROMPT_EN[mode] + " " +
+    "Create ONE vivid English video prompt from the data below. Include: visual style, characters (age, look, voice tone), " +
+    "setting, lighting, camera movement, action beats over time, and the spoken dialogue. " +
+    (inp.langEn
+      ? `Translate every dialogue line faithfully into ${inp.langEn} and keep it written in that language's own script. `
+      : "Keep every dialogue line in its original language, unchanged. ") +
+    "Put each spoken line in double quotes with its speaker. No on-screen text, no watermark. Under 180 words. " +
+    "Reply ONLY with JSON: {\"prompt\":\"...\",\"dialogue\":[{\"speaker\":\"\",\"line\":\"\"}]} " +
+    "where dialogue holds the final lines exactly as spoken. " +
+    "DATA: scene: " + inp.scene + " | style: " + inp.style + " | camera: " + inp.camera +
+    " | dialogue: " + JSON.stringify(inp.lines)
+  );
+
+  const d = aiJSON(answer);
+
+  const prompt = clean(d.prompt, 2500);
+
+  if (!prompt) throw new Error("EMPTY");
+
+  const captions = (d.dialogue || []).slice(0, 8)
+    .map(x => ({ name: clean(x.speaker, 40), text: clean(x.line, 260) }))
+    .filter(x => x.text);
+
+  return { prompt, captions };
+
+}
+
+async function buildVideoPrompt(silent) {
+
+  if (!requireAuth()) throw new Error("AUTH");
+
+  const inp = videoInputs();
+
+  if (!inp.scene && !inp.lines.length) {
+    if (!silent) alert("اكتب وصف المشهد أو الحوار أولاً.");
+    throw new Error("EMPTY_INPUT");
+  }
+
+  $("vBuildBtn").disabled = true;
+
+  let result;
+
+  try {
+
+    result = await buildVideoPromptAI(inp, vMode);
+    $("vNote").textContent = "";
+
+  } catch (e) {
+
+    result = buildLocalVideoPrompt(inp, vMode);
+    $("vNote").textContent = "تعذر المساعد، فاستُخدم قالب جاهز. يمكنك تعديل الوصف يدوياً.";
+
+  } finally {
+
+    $("vBuildBtn").disabled = false;
+
+  }
+
+  $("vFinal").value = result.prompt;
+  vCaptions = result.captions;
+
+  return result;
+
+}
+
+
+// ---- التوليد ----
+
+function videoSrcOf(el) {
+  return el?.src || el?.currentSrc || el?.querySelector?.("source")?.src || "";
+}
+
+function videoErrorMessage(e) {
+
+  const code = e?.code || e?.error?.code || "";
+  const raw = clean(e?.message || e?.error?.message || (typeof e === "string" ? e : ""), 260);
+
+  if (e && e.message === "TIMEOUT") return "انتهت مهلة الانتظار. جرّب مدة أقصر أو نموذجاً أسرع.";
+  if (e && e.message === "PUTER_MISSING") return "تعذر تحميل Puter. تحقق من الإنترنت أو عطّل مانع الإعلانات.";
+  if (e && e.errorCode === "moderation_flagged") return "رفض فلتر المحتوى هذا الوصف. غيّر صياغته بدل إعادة المحاولة كما هو.";
+
+  if (code === "insufficient_funds")
+    return "رصيد حسابك على Puter لا يكفي لهذا المقطع. جرّب وضع التجربة أو نموذجاً أرخص أو مدة أقصر. " + raw;
+  if (code === "upstream_timeout") return "تأخر المزوّد في إنهاء المقطع. أعد المحاولة بمدة أقصر.";
+  if (code === "input_too_large") return "حجم الصورة أو الفيديو المرفوع كبير جداً. صغّره وأعد المحاولة.";
+  if (code === "access_denied") return "لا توجد صلاحية للوصول إلى الملف المطلوب.";
+
+  return (raw || "فشل إنشاء الفيديو.") + (code ? ` (${code})` : "");
+
+}
+
+function setVideoState(state) {
+  ["vEmpty", "vLoading", "vError", "vResult"].forEach(id => {
+    const on = id === state;
+    $(id).classList.toggle("hidden", !on);
+    if (id === "vLoading") $(id).classList.toggle("flex", on);
+  });
+}
+
+function validateVideoState(st) {
+  if (st.mode === "text" && !st.scene && !st.lines.length) return "اكتب وصف المشهد أو الحوار أولاً.";
+  if (st.mode === "frames" && !st.first) return "ارفع الإطار الأول أولاً.";
+  if (st.mode === "refs" && !st.refs.length) return "أضف صورة واحدة على الأقل كمكوّن.";
+  if (st.mode === "edit" && !st.edit) return "اختر مقطعاً للتعديل أو استخدم مقطعاً من الشريط.";
+  if (st.mode === "edit" && !st.scene && !clean($("vFinal").value, 10)) return "صِف التعديل أو كيف يكمل المشهد.";
+  return "";
+}
+
+async function runVideoRequest(prompt, opts) {
+
+  try {
+
+    return await withTimeout(puter.ai.txt2vid(prompt, opts), 930000);
+
+  } catch (e) {
+
+    const code = e?.code || e?.error?.code || "";
+
+    // بعض النماذج ترفض الأبعاد أو المدة أو الصوت، فنعيد المحاولة بالحد الأدنى
+    if ((code === "bad_request" || code === "upstream_bad_request") && !e?.errorCode) {
+
+      const slim = { ...opts };
+      ["size", "seconds", "generate_audio", "width", "height"].forEach(k => delete slim[k]);
+
+      if (Object.keys(slim).length < Object.keys(opts).length)
+        return await withTimeout(puter.ai.txt2vid(prompt, slim), 930000);
+
+    }
+
+    throw e;
+
+  }
+
+}
+
+async function generateVideo() {
+
+  if (!requireAuth()) return;
+
+  if (isVideoGenerating) return;
+
+  const m = currentVModel();
+
+  const st = {
+    mode: vMode,
+    ...videoInputs(),
+    seconds: Number($("vDuration").value) || 0,
+    tier: $("vQuality").value,
+    ratio: $("vRatio").value || "16:9",
+    audio: $("vAudio").checked,
+    test: $("vTest").checked,
+    first: vFirst,
+    last: vLast,
+    refs: vRefs.slice(),
+    edit: vEdit
+  };
+
+  const problem = validateVideoState(st);
+
+  if (problem) {
+    alert(problem);
+    return;
+  }
+
+  if (tooFast("video", 4000)) return;
+
+  const count = Number($("vCount").value) || 1;
+
+  isVideoGenerating = true;
+  $("vGenBtn").disabled = true;
+  setVideoState("vLoading");
+
+  const started = Date.now();
+  let label = "";
+
+  clearInterval(vTimer);
+  vTimer = setInterval(() => {
+    $("vLoadingMsg").textContent =
+      `${label} مضى ${Math.floor((Date.now() - started) / 1000)} ثانية. الفيديو قد يستغرق عدة دقائق.`;
+  }, 1000);
+
+  let done = 0;
+  let lastError = null;
+
+  try {
+
+    if (!puterReady()) throw new Error("PUTER_MISSING");
+
+    let prompt = clean($("vFinal").value, 2500);
+
+    if (!prompt) {
+
+      if (st.scene || st.lines.length) {
+        label = "المساعد يبني وصف الفيديو.";
+        prompt = (await buildVideoPrompt(true)).prompt;
+      } else {
+        prompt = st.mode === "refs"
+          ? "A cinematic scene featuring the subjects from the reference images, smooth natural motion."
+          : "Bring this image to life with smooth, natural cinematic motion.";
+      }
+
+    }
+
+    const captions = vCaptions && vCaptions.length ? vCaptions : st.lines;
+    const opts = buildVideoOptions(m, st);
+
+    for (let i = 1; i <= count; i++) {
+
+      label = count > 1 ? `المقطع ${i} من ${count}.` : "";
+
+      let video;
+
+      try {
+        video = await runVideoRequest(prompt, opts);
+      } catch (e) {
+        lastError = e;
+        break;
+      }
+
+      const src = videoSrcOf(video);
+
+      if (!src || !/^(blob:|https:|data:video\/)/.test(src)) {
+        lastError = new Error("BAD_VIDEO");
+        break;
+      }
+
+      timeline.push({ src, prompt, captions, model: m.label });
+      done++;
+
+      $("vPlayer").src = src;
+      $("vPlayer").load();
+      currentCaptions = captions;
+      playAllIdx = -1;
+      $("vCaption").classList.add("hidden");
+
+      renderTimeline();
+      setVideoState("vResult");
+
+    }
+
+  } catch (e) {
+
+    lastError = e;
+
+  } finally {
+
+    clearInterval(vTimer);
+    isVideoGenerating = false;
+    $("vGenBtn").disabled = false;
+
+  }
+
+  if (!done) {
+    $("vErrorMsg").textContent = videoErrorMessage(lastError);
+    setVideoState("vError");
+  }
+
+}
+
+
+// ---- المشغّل والترجمة ----
+
+$("vPlayer").addEventListener("timeupdate", () => {
+
+  const v = $("vPlayer");
+  const box = $("vCaption");
+
+  if (!$("vSubs").checked || !currentCaptions.length || !isFinite(v.duration) || v.duration <= 0) {
+    box.classList.add("hidden");
+    return;
+  }
+
+  const idx = Math.min(currentCaptions.length - 1, Math.floor((v.currentTime / v.duration) * currentCaptions.length));
+  const c = currentCaptions[idx];
+
+  box.textContent = (c.name ? c.name + ": " : "") + c.text;
+  box.classList.remove("hidden");
+
+});
+
+$("vPlayer").addEventListener("ended", () => {
+
+  $("vCaption").classList.add("hidden");
+
+  if (playAllIdx >= 0) {
+    playAllIdx++;
+    if (playAllIdx < timeline.length) playIndex(playAllIdx); else playAllIdx = -1;
+  }
+
+});
+
+function playIndex(i) {
+
+  const c = timeline[i];
+
+  if (!c) return;
+
+  $("vPlayer").src = c.src;
+  $("vPlayer").load();
+  currentCaptions = c.captions || [];
+  setVideoState("vResult");
+  $("vPlayer").play().catch(() => {});
+
+}
+
+
+// ---- الشريط الزمني للمشاهد ----
+
+function renderTimeline() {
+
+  $("vTimeline").innerHTML = "";
+
+  if (!timeline.length) {
+    $("vTimeline").innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-5">لا توجد مشاهد بعد.</p>';
+    return;
+  }
+
+  timeline.forEach((c, i) => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const vid = document.createElement("video");
+    vid.src = c.src;
+    vid.muted = true;
+    vid.preload = "metadata";
+    vid.playsInline = true;
+    vid.style.cssText = "width:100%;height:130px;object-fit:cover;background:#000";
+
+    const body = document.createElement("div");
+    body.className = "p-2";
+
+    const title = document.createElement("p");
+    title.className = "text-xs font-bold truncate";
+    title.textContent = `مشهد ${i + 1} • ${c.model}`;
+
+    const sub = document.createElement("p");
+    sub.className = "text-xs text-slate-400 truncate";
+    sub.textContent = c.prompt;
+
+    const row = document.createElement("div");
+    row.className = "flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs";
+
+    const actions = [
+      ["تشغيل", "text-indigo-300", () => { playAllIdx = -1; playIndex(i); }],
+      ["تمديد", "text-emerald-300", () => extendClip(i)],
+      ["تحميل", "text-slate-300", () => downloadSrc(c.src, `scene-${i + 1}`)],
+      ["قبل", "text-slate-400", () => moveClip(i, -1)],
+      ["بعد", "text-slate-400", () => moveClip(i, 1)],
+      ["حذف", "text-red-400", () => removeClip(i)]
+    ];
+
+    actions.forEach(a => {
+      const b = document.createElement("button");
+      b.className = a[1];
+      b.textContent = a[0];
+      b.onclick = a[2];
+      row.appendChild(b);
+    });
+
+    body.append(title, sub, row);
+    card.append(vid, body);
+    $("vTimeline").appendChild(card);
+
+  });
+
+}
+
+function moveClip(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= timeline.length) return;
+  [timeline[i], timeline[j]] = [timeline[j], timeline[i]];
+  renderTimeline();
+}
+
+function removeClip(i) {
+  const c = timeline[i];
+  if (c && c.src.startsWith("blob:")) URL.revokeObjectURL(c.src);
+  timeline.splice(i, 1);
+  renderTimeline();
+}
+
+function clearTimeline() {
+
+  if (!timeline.length || !confirm("هل تريد مسح كل المشاهد؟")) return;
+
+  timeline.forEach(c => { if (c.src.startsWith("blob:")) URL.revokeObjectURL(c.src); });
+  timeline = [];
+  playAllIdx = -1;
+  renderTimeline();
+
+}
+
+function playAll() {
+
+  if (!timeline.length) {
+    alert("لا توجد مشاهد بعد.");
+    return;
+  }
+
+  playAllIdx = 0;
+  playIndex(0);
+
+}
+
+// يحوّل المقطع إلى مدخل للتعديل لإكمال المشهد
+function extendClip(i) {
+
+  const c = timeline[i];
+
+  if (!c) return;
+
+  vEdit = c.src;
+  $("vEditTxt").textContent = `مشهد ${i + 1}`;
+
+  setVideoMode("edit");
+
+  $("vModel").value = "omni";
+  refreshVideoSettings();
+
+  if (!$("vScene").value.trim()) {
+    $("vScene").value = "Continue this scene seamlessly for a few more seconds, keeping the same characters, style, voices and camera.";
+  }
+
+  $("vFinal").value = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+}
+
+async function downloadSrc(src, name) {
+
+  if (!src) return;
+
+  let href = src;
+  let temp = null;
+
+  if (!/^(blob:|data:)/.test(href)) {
+    try {
+      const r = await fetch(href);
+      temp = URL.createObjectURL(await r.blob());
+      href = temp;
+    } catch (e) {
+      window.open(src, "_blank", "noopener");
+      return;
+    }
+  }
+
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = (name || "creative-studio-video") + ".mp4";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  if (temp) setTimeout(() => URL.revokeObjectURL(temp), 5000);
+
+}
+
+function downloadVideo() {
+  downloadSrc($("vPlayer").getAttribute("src"), "creative-studio-" + Date.now());
+}
+
+setVideoMode("text");
+renderTimeline();
+
+
+// ======================================
 // المساعد الذكي (محادثة)
 // ======================================
 
@@ -1475,6 +2822,8 @@ function addChatBubble(role, text) {
 }
 
 async function sendChat() {
+
+  if (!requireAuth()) return;
 
   if (isChatting) return;
 
